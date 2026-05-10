@@ -1,0 +1,42 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/signup.css' %}">
+
+<div class="signup-container">
+    <div class="card signup-card">
+        <form method="POST">
+            {% csrf_token %}
+            <h2>Join Us</h2>
+            <p>Create your account to get started</p>
+            
+            <div class="input-group">
+                <label>First Name:</label>
+                <input type="text" name="first_name" placeholder="Enter first name" required>
+            </div>
+
+            <div class="input-group">
+                <label>Last Name:</label>
+                <input type="text" name="lname" placeholder="Enter last name" required>
+            </div>
+
+            <div class="input-group">
+                <label>Email:</label>
+                <input type="email" name="email" placeholder="email@example.com" required>
+            </div>
+
+            <div class="input-group">
+                <label>Phone Number:</label>
+                <input type="text" name="phone" maxlength="11" placeholder="012XXXXXXXX" required>
+            </div>
+
+            <div class="input-group">
+                <label>Membership Type</label>
+                <select name="member_type" required>
+                    <option value="Basic">Basic</option>
+                    <option value="Premium">Premium</option>
+                </select>
+            </div>
+
+            <button type="submit" class="signup-btn">Sign Up</button>
+        </form>
+    </div>
+</div>
