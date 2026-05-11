@@ -1,4 +1,3 @@
-
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/login.css' %}">
 <div class="login-container">
@@ -7,9 +6,9 @@
             {% csrf_token %}
             <h2>Welcome Back</h2>
             <p>Please login to your account</p>
-            
+
             {% if error %}
-                <div class="error-msg">{{ error }}</div>
+            <div class="error-msg">{{ error }}</div>
             {% endif %}
 
             <div class="input-group">
@@ -23,6 +22,7 @@
             </div>
 
             <button type="submit" class="login-btn">Login</button>
+            <p class="signup-link">Don't have an account? <a href="{% url 'signup_member' %}">Sign Up</a></p>
         </form>
     </div>
 </div>

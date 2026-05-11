@@ -1,0 +1,75 @@
+body {    
+    background-color: #f4f7f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.profile-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+}
+
+.profile-card h1 {
+    color: #2d3436;
+    margin-bottom: 0.5rem;
+    font-size: 24px;
+}
+
+.profile-card hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 1.5rem 0;
+}
+
+.info-group {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.info-group label {
+    font-weight: bold;
+    color: #636e72;
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.info-group p {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    color: #2d3436;
+    margin: 0;
+    border: 1px solid #f0f0f0;
+}
+
+.membership-badge {
+    display: inline-block;
+    background-color: #00b894;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.logout-btn {
+    margin-top: 2rem;
+    display: inline-block;
+    color: #d63031;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    text-decoration: underline;
+}

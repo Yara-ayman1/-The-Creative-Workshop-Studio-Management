@@ -85,9 +85,9 @@ TEAM_DB_CONFIG = {
         'NAME': 'The Creative Workshop & Studio Management',
         'HOST': 'DESKTOP-OOMERMH',
     },
-    'Mariam-PC': { 
-        'NAME': 'Studio_DB',
-        'HOST': 'ALAA-PC',
+    'DESKTOP-IRAR4LT': { 
+        'NAME': 'The Creative Workshop & Studio Management',
+        'HOST': 'DESKTOP-IRAR4LT',
     },
     'Lekaa-LAPTOP': {  
         'NAME': '',

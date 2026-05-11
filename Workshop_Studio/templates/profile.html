@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Member Profile</title>
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+</head>
+
+<body>
+    <div class="profile-container">
+        <div class="profile-card">
+            <h1>Hi, {{ first_name }}! 👋</h1>
+            <p style="color: #636e72;">Welcome to your Profile</p>
+            <hr>
+
+            <div class="info-group">
+                <label>Email Address</label>
+                <p>{{ email }}</p>
+            </div>
+
+            <div class="info-group">
+                <label>Phone Number</label>
+                <p>{{ phone }}</p>
+            </div>
+
+            <div class="info-group">
+                <label>Member ID</label>
+                <p>#{{ member_id }}</p>
+            </div>
+            
+            <div class="info-group">
+                <label>Membership Period</label>
+                <p>From: {{ start_date|date:"d M Y" }} To: {{ end_date|date:"d M Y" }}</p>
+            </div>
+
+            <div class="info-group">
+                <label>Membership Status</label>
+                <span class="membership-badge">{{ membership }} Member</span>
+            </div>
+
+            <a href="{% url 'login_member' %}" class="logout-btn">Logout</a>
+        </div>
+    </div>
+</body>
+
+</html>
