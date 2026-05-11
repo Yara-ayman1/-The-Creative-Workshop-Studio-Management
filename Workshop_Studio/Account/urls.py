@@ -1,10 +1,12 @@
 from django.urls import path
 from . import views
 urlpatterns = [
-    path('signup/', views.signup_member, name='signup_member'),
-   path('', views.login_member, name='login_member'),
-    path('profile/', views.profile_member, name='profile_member'),
+    path('', views.manage_members, name='MembersList'),
+    path('add_member/', views.add_member, name='AddMemberForm'),
+    path('edit_member/<int:member_id>/', views.edit_member, name='edit_member'),
+    path('delete_member/<int:member_id>/', views.delete_member, name='delete_member'),
    
+    
 
 
 ]

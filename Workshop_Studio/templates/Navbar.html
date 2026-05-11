@@ -1,0 +1,22 @@
+<style>
+    .nav-container {
+
+                
+        background-color: #b5b4b3;
+         padding: 1rem 2rem;
+        display: flex;
+        gap: 20px;
+        
+    }
+    .nav-container a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .nav-container a:hover { color: #28a745; }
+</style>
+
+<div class="nav-container">
+    <a href="{% url 'MembersList' %}">Members List</a>
+    <a href="{% url 'AddMemberForm' %}">Add Member</a>
+</div>

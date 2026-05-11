@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    /* تنسيق الحاوية لضمان عدم خروج الجدول عن الشاشة */
+    .manage-container {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 30px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    /* حل مشكلة عرض الجدول */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto; /* يسمح بالتمرير بالعرض لو الجدول كبر */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin-top: 20px;
+        min-width: 900px; /* يضمن مساحة كافية للأعمدة الكتير */
+    }
+
+    th, td { 
+        border: 1px solid #eee; 
+        padding: 12px 15px; 
+        text-align: left; 
+    }
+
+    th { 
+        background-color: #3498db; 
+        color: white;
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+
+    tr:hover { background-color: #f5f5f5; }
+
+    /* تنسيق الأزرار */
+    .btn-add { 
+        padding: 10px 20px; 
+        background-color: #27ae60; 
+        border-radius: 5px;
+        color: white !important;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.3s;
+    }
+
+    .btn-add:hover { background-color: #219150; }
+
+    .edit-link { color: #2980b9; font-weight: bold; text-decoration: none; }
+    .delete-link { color: #e74c3c; font-weight: bold; margin-left: 10px; text-decoration: none; }
+    
+    .edit-link:hover, .delete-link:hover { text-decoration: underline; }
+</style>
+
+<div class="manage-container">
+    <h2>Members Management Dashboard</h2>
+    
+    <a href="{% url 'AddMemberForm' %}" class="btn-add">
+         Add New Member
+    </a>
+
+    <hr style="margin-top: 20px; border: 0; border-top: 1px solid #eee;">
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Membership</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members %}
+                <tr>
+                    <td><strong>{{ member.0 }}</strong></td>
+                    <td>{{ member.1 }} {{ member.2 }}</td>
+                    <td>{{ member.3 }}</td>
+                    <td>{{ member.4 }}</td>
+                    <td>{{ member.7 }}</td>
+                    <td>{{ member.5|date:"d M Y" }}</td>
+                    <td>{{ member.6|date:"d M Y" }}</td>
+                    <td>
+                        <a href="{% url 'edit_member' member.0 %}" class="edit-link">Edit</a> 
+                        
+                        <a href="{% url 'delete_member' member.0 %}" 
+                           class="delete-link"
+                           onclick="return confirm('Are you sure you want to delete member #{{ member.0 }}?');">
+                           Delete
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

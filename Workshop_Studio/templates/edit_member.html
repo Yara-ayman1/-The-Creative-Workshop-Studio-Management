@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+   
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Member</title>
+    <style>
+        .card { max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; font-family: sans-serif; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h3 { text-align: center; color: #333; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #218838; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h3>Edit Member Info</h3>
+    <form method="POST">
+        {% csrf_token %}
+        
+        <label>First Name:</label>
+        <input type="text" name="first_name" value="{{ member.1 }}" placeholder="First Name">
+        
+        <label>Last Name:</label>
+        <input type="text" name="last_name" value="{{ member.2 }}" placeholder="Last Name">
+        
+        <label>Email Address:</label>
+        <input type="email" name="email" value="{{ member.3 }}" placeholder="Email Address">
+        
+        <label>Phone Number:</label>
+        <input type="text" name="phone" value="{{ member.4 }}" placeholder="Phone Number">
+        
+        <label>Membership Type:</label>
+        <select name="member_type">
+            <option value="basic" {% if member.7 == 'basic' %}selected{% endif %}>Basic</option>
+            <option value="premium" {% if member.7 == 'premium' %}selected{% endif %}>Premium </option>
+       
+            
+        </select>
+        <label>Membership Start Date:</label>
+        <input type="date" name="membership_start" value="{{ member.5|date:'Y-m-d' }}" placeholder="Start Date">        
+        <label>Membership End Date:</label>
+        <input type="date" name="membership_end" value="{{ member.6|date:'Y-m-d' }}" placeholder="End Date">
+        
+
+        <button type="submit">Update Member</button>
+        <a href="{% url 'MembersList' %}" class="back-link">Cancel and Return</a>
+    </form>
+</div>
+
+</body>
+</html>
+{% endblock %}
