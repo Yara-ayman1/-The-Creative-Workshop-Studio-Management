@@ -1,4 +1,8 @@
+{% extends 'base.html' %}
 {% load static %}
+{% block content %}
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -47,16 +51,16 @@
                     <td>
                         <form method="POST" action="{% url 'record_consumption' %}">
                             {% csrf_token %}
-                            <input type="hidden" name="mat_id" value="{{ mat.0 }}">
-                            <input type="number" name="amount" placeholder="amount" class="input-small">
+                            <input type="hidden" name="mat_id" value="{{ mat.0 }}" required>
+                            <input type="number" name="amount" placeholder="amount" class="input-small" required>
                             <button class="btn consume">Consume</button>
                         </form>
                     </td>
                     <td>
                         <form method="POST" action="{% url 'increase_stock' %}">
                             {% csrf_token %}
-                            <input type="hidden" name="mat_id" value="{{ mat.0 }}">
-                            <input type="number" name="amount" placeholder="amount" class="input-small">
+                            <input type="hidden" name="mat_id" value="{{ mat.0 }}" required>
+                            <input type="number" name="amount" placeholder="amount" class="input-small" required>
                             <button class="btn add_amount">Add</button>
                         </form>
                     </td>
@@ -78,11 +82,11 @@
         <form method="POST" action="{% url 'add_material' %}">
             {% csrf_token %}
             <div class="grid">
-              <input type="number" name="material_id" placeholder="ID">
-              <input type="text" name="name" placeholder="Name">
-              <input type="text" name="category" placeholder="Category">
-              <input type="number" name="quantity" placeholder="Quantity">
-              <input type="text" name="unit" placeholder="Unit">
+              <input type="number" name="material_id" placeholder="ID" required>
+              <input type="text" name="name" placeholder="Name" required>
+              <input type="text" name="category" placeholder="Category" required>
+              <input type="number" name="quantity" placeholder="Quantity" required>
+              <input type="text" name="unit" placeholder="Unit" required>
               <button class="btn add">Add Material</button>
             </div>
         </form>
@@ -91,3 +95,4 @@
 
 </body>
 </html>
+{% endblock %}
