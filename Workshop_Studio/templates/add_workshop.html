@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .page-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 50px;
+        background-color: #f4f4f4;
+        min-height: 100vh;
+    }
+
+    .form-container {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        width: 500px;
+    }
+
+    h2 { text-align: center; color: #333; margin-top: 0; }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+
+    label {
+        font-size: 14px;
+        font-weight: bold;
+        color: #555;
+        display: block;
+        margin-top: 15px;
+    }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-2 .field { display: flex; flex-direction: column; }
+
+    .error-box {
+        background: #fdecea;
+        border: 1px solid #f5c6c6;
+        color: #c0392b;
+        padding: 10px 14px;
+        border-radius: 4px;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 25px;
+    }
+    button[type="submit"]:hover { background-color: #218838; }
+
+    .cancel-link {
+        display: block;
+        text-align: center;
+        margin-top: 12px;
+        color: #666;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .cancel-link:hover { text-decoration: underline; }
+</style>
+
+<div class="page-wrapper">
+    <div class="form-container">
+        <h2>🎨 New Workshop</h2>
+        <hr>
+
+        {% if error %}
+        <div class="error-box">{{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <label for="title">Workshop Title</label>
+            <input type="text" id="title" name="title" placeholder="e.g. Intro to Wheel Throwing" required>
+
+            <label for="craft_type">Craft Type</label>
+           <input type="text" name="craft_type" value="{{ workshop.4 }}" required>
+
+            <label for="artist_id">Instructor (Resident Artist)</label>
+            <select id="artist_id" name="artist_id" required>
+                <option value="" disabled selected>Select artist…</option>
+                {% for a in artists %}
+                <option value="{{ a.0 }}">{{ a.1 }} {{ a.2 }}{% if a.3 %} — {{ a.3 }}{% endif %}</option>
+                {% endfor %}
+            </select>
+
+            <label for="studio_id">Studio</label>
+            <select id="studio_id" name="studio_id" required>
+                <option value="" disabled selected>Select studio…</option>
+                {% for s in studios %}
+                <option value="{{ s.0 }}">{{ s.1 }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="max_participants">Max Participants</label>
+            <input type="number" id="max_participants" name="max_participants" min="1" max="100" required>
+
+            <label>Date</label>
+            <div class="row-2">
+                <div class="field">
+                    <label for="workshop_date" style="margin-top:0; font-weight:normal; color:#777; font-size:13px;">Date</label>
+                    <input type="date" id="workshop_date" name="workshop_date" required>
+                </div>
+                <div class="field">
+                    <!-- spacer -->
+                </div>
+            </div>
+
+            <div class="row-2" style="margin-top: 15px;">
+                <div class="field">
+                    <label for="start_time" style="font-size:14px; font-weight:bold; color:#555;">Start Time</label>
+                    <input type="time" id="start_time" name="start_time" required>
+                </div>
+                <div class="field">
+                    <label for="end_time" style="font-size:14px; font-weight:bold; color:#555;">End Time</label>
+                    <input type="time" id="end_time" name="end_time" required>
+                </div>
+            </div>
+
+            <button type="submit">Create Workshop</button>
+            <a href="{% url 'workshop_list' %}" class="cancel-link">Cancel and Return</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

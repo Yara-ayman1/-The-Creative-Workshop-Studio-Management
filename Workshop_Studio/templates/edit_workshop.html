@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .card {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 25px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        font-family: 'Segoe UI', sans-serif;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background: white;
+    }
+
+    h3 { text-align: center; color: #333; margin-top: 0; }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+
+    input:disabled {
+        background-color: #f5f5f5;
+        color: #aaa;
+        cursor: not-allowed;
+    }
+
+    label {
+        font-size: 14px;
+        font-weight: bold;
+        color: #555;
+        display: block;
+        margin-top: 12px;
+    }
+
+    .info-note {
+        background-color: #eaf4fb;
+        border: 1px solid #b8d9ed;
+        color: #2980b9;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-2 .field { display: flex; flex-direction: column; }
+    .row-2 .field label { margin-top: 0; }
+
+    button[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 20px;
+    }
+    button[type="submit"]:hover { background: #218838; }
+
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 12px;
+        color: #666;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .back-link:hover { text-decoration: underline; }
+</style>
+
+{# w: 0=artist_id, 1=studio_id, 2=workshop_id, 3=title, 4=craft_type,
+       5=workshop_date, 6=start_time, 7=end_time, 8=max_participants #}
+
+<div class="card">
+    <h3>✏️ Edit Workshop</h3>
+
+    <div class="info-note">
+        ℹ️ Instructor and studio cannot be changed after creation.
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label>Workshop Title</label>
+        <input type="text" name="title" value="{{ workshop.3 }}" required>
+
+        <label>Craft Type</label>
+         <input type="text" name="craft_type" value="{{ workshop.4 }}" required>
+      
+         
+        <label>Instructor</label>
+        <input type="text" value="(locked after creation)" disabled>
+
+        <label>Studio</label>
+        <input type="text" value="(locked after creation)" disabled>
+
+        <label>Max Participants</label>
+        <input type="number" name="max_participants" value="{{ workshop.8 }}" min="1" max="100" required>
+
+        <label>Date</label>
+        <input type="date" name="workshop_date" value="{{ workshop.5 }}" required>
+
+        <div class="row-2" style="margin-top: 12px;">
+            <div class="field">
+                <label>Start Time</label>
+                <input type="time" name="start_time" value="{{ workshop.6 }}" required>
+            </div>
+            <div class="field">
+                <label>End Time</label>
+                <input type="time" name="end_time" value="{{ workshop.7 }}" required>
+            </div>
+        </div>
+
+        <button type="submit">Update Workshop</button>
+        <a href="{% url 'workshop_list' %}" class="back-link">Cancel and Return</a>
+    </form>
+</div>
+
+{% endblock %}

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'Account',
     'Inventory',
     'Tools',
+    'WorkshopManagement',
 ]
 
 MIDDLEWARE = [
@@ -99,9 +100,9 @@ TEAM_DB_CONFIG = {
         'NAME': '',
         'HOST': '',
     },
-    'Arwa-LAPTOP': {  
-        'NAME': '',
-        'HOST': '',
+    'Arwas-Desktop': {  
+        'NAME': 'The Creative Workshop & Studio Management',
+        'HOST': 'ARWAS-DESKTOP\SQLEXPRESS',
     },
     'bodyy': {  
         'NAME': 'workshopDB',

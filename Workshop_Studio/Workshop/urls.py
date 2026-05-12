@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('Account.urls')),
     path('inventory/', include('Inventory.urls')),
     path('tools/', include('Tools.urls')),
+    path('Manage Workshop/', include('WorkshopManagement.urls')),
 ]
