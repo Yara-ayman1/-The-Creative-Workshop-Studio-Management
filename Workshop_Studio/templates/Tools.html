@@ -1,0 +1,110 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tool Management System</title>
+    <link rel="stylesheet" href="{% static 'css/tools.css' %}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="header">
+        <h1>🔧 Tool Management System</h1>
+        <p>Add • Rent • Return • Track Tools</p>
+    </header>
+    
+
+    <section class="card">
+        <h2>📋 Tools List</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>StudioID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Condition</th>
+                    <th>Total Rentals</th>
+                    <th>Member</th>
+                    <th>Pickup</th>
+                    <th>Return</th>
+                    <th>Rent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tools %}
+                <tr>
+                    <td>{{ t.0 }}</td>
+                    <td>{{ t.1 }}</td>
+                    <td>{{ t.2 }}</td>
+                    <td>{{ t.3 }}</td>
+                    <td>{{ t.4 }}</td>
+                    <td>{{ t.5 }}</td>
+                    <td>
+                        {% if t.6 %}
+                           Member ID:{{ t.6 }}
+                        {% else %}
+                            NOT RENTED
+                        {% endif %}
+                    </td>
+                    <td>{{ t.7|default:"-" }}</td>
+                    <td>{{ t.8|default:"-" }}</td>
+
+                    <td>
+                        {% if not t.6 %}
+
+                        <form method="POST" action="{% url 'rent_tool' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="tool_id" value="{{ t.0 }}">
+                            <input type="number" name="member_id" placeholder="Member ID" required>
+                            <input type="datetime-local" name="pickup_time" required>
+                            <input type="datetime-local" name="return_time" required>
+                            <input type="text" name="condition" placeholder="Condition" required>
+                            <button class="btn rent">Rent</button>
+                        </form>
+
+                         {% else %}
+                        <form method="POST" action="{% url 'return_tool' %}">
+
+                            {% csrf_token %}
+                            <input type="hidden" name="tool_id" value="{{ t.0 }}">
+                            <input type="text" name="condition" placeholder="New Condition" required>
+                            <button class="btn return">Returned</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'delete_tool' %}">
+                          {% csrf_token %}
+                          <input type="hidden" name="mat_id" value="{{ mat.0 }}">
+                          <button type="submit" class="btn-delete">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>➕ Add New Tool</h2>
+        <form method="POST" action="{% url 'add_tool' %}">
+            {% csrf_token %}
+            <div class="grid">
+                <input type="number" name="tool_id" placeholder="Tool ID" required>
+                <input type="number" name="studio_id" placeholder="studio ID" required>
+                <input type="text" name="tool_name" placeholder="Tool Name" required>
+                <input type="text" name="description" placeholder="Description" required>
+                <input type="text" name="condition" placeholder="Condition" required>
+            </div>
+            <button class="btn add">Add Tool</button>
+        </form>
+    </section>
+</div>
+</body>
+</html>

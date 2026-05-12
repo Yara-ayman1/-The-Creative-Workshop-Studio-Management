@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Account',
+    'Inventory',
+    'Tools',
 ]
 
 MIDDLEWARE = [
@@ -101,9 +103,9 @@ TEAM_DB_CONFIG = {
         'NAME': '',
         'HOST': '',
     },
-    'Hager-LAPTOP': {  
-        'NAME': '',
-        'HOST': '',
+    'bodyy': {  
+        'NAME': 'workshopDB',
+        'HOST': 'bodyy',
     },
 
 }

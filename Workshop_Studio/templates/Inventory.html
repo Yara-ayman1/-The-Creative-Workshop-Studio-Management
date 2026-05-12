@@ -1,0 +1,93 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Raw Material Inventory</title>
+    <link rel="stylesheet" href="{% static 'css/inventory.css' %}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="header">
+        <h1>Raw Material Inventory</h1>
+        <p>Add • Track Materials</p>
+    </header>
+
+    <section class="card">
+        <h2>📋 Material List</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Material Name</th>
+                    <th>Category</th>
+                    <th>Available Stock</th>
+                    <th>Unit</th>
+                    <th>Consume</th>
+                    <th>Add Stock</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for mat in materials %}
+                <tr>
+                    <td>{{ mat.0 }}</td>
+                    <td>{{ mat.1 }}</td>
+                    <td>{{ mat.4 }}</td>
+                    <td class="{% if mat.3 < 5 %}low-stock{% endif %}">
+                        {{ mat.3 }}
+                    </td>
+                    <td>{{ mat.2 }}</td>
+
+                    <td>
+                        <form method="POST" action="{% url 'record_consumption' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="mat_id" value="{{ mat.0 }}">
+                            <input type="number" name="amount" placeholder="amount" class="input-small">
+                            <button class="btn consume">Consume</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'increase_stock' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="mat_id" value="{{ mat.0 }}">
+                            <input type="number" name="amount" placeholder="amount" class="input-small">
+                            <button class="btn add_amount">Add</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'delete_material' %}">
+                          {% csrf_token %}
+                          <input type="hidden" name="mat_id" value="{{ mat.0 }}">
+                          <button type="submit" class="btn-delete">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>➕ Add New Material</h2>
+        <form method="POST" action="{% url 'add_material' %}">
+            {% csrf_token %}
+            <div class="grid">
+              <input type="number" name="material_id" placeholder="ID">
+              <input type="text" name="name" placeholder="Name">
+              <input type="text" name="category" placeholder="Category">
+              <input type="number" name="quantity" placeholder="Quantity">
+              <input type="text" name="unit" placeholder="Unit">
+              <button class="btn add">Add Material</button>
+            </div>
+        </form>
+    </section>
+</div>
+
+</body>
+</html>
