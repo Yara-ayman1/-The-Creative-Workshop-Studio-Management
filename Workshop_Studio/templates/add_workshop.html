@@ -78,7 +78,7 @@
 
 <div class="page-wrapper">
     <div class="form-container">
-        <h2>🎨 New Workshop</h2>
+        <h2> New Workshop</h2>
         <hr>
 
         {% if error %}
@@ -92,7 +92,7 @@
             <input type="text" id="title" name="title" placeholder="e.g. Intro to Wheel Throwing" required>
 
             <label for="craft_type">Craft Type</label>
-           <input type="text" name="craft_type" value="{{ workshop.4 }}" required>
+            <input type="text" id="craft_type" name="craft_type" placeholder="e.g. Pottery, Painting, Digital Media…" required>
 
             <label for="artist_id">Instructor (Resident Artist)</label>
             <select id="artist_id" name="artist_id" required>

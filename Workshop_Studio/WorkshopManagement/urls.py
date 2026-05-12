@@ -23,4 +23,10 @@ urlpatterns = [
     # ── Material consumption ────────────────────────────────────
     path('<int:artist_id>/<int:studio_id>/<int:workshop_id>/consume/',
                                                        views.log_consumption, name='log_consumption'),
+
+    # ── Resident Artists ────────────────────────────────────────
+    path('artists/',                        views.artist_list,   name='artist_list'),
+    path('artists/add/',                    views.add_artist,    name='add_artist'),
+    path('artists/<int:artist_id>/edit/',   views.edit_artist,   name='edit_artist'),
+    path('artists/<int:artist_id>/delete/', views.delete_artist, name='delete_artist'),
 ]

@@ -2,9 +2,7 @@ from django.shortcuts import render, redirect
 from django.db import connection
 
 
-# ──────────────────────────────────────────────
-# HELPERS
-# ──────────────────────────────────────────────
+
 
 def _fetch_studios():
     with connection.cursor() as cursor:
@@ -32,9 +30,7 @@ def _next_workshop_id(artist_id, studio_id):
         return cursor.fetchone()[0]
 
 
-# ──────────────────────────────────────────────
-# WORKSHOP LIST
-# ──────────────────────────────────────────────
+
 
 def workshop_list(request):
     with connection.cursor() as cursor:
@@ -60,9 +56,6 @@ def workshop_list(request):
     return render(request, 'workshop_list.html', {'workshops': workshops})
 
 
-# ──────────────────────────────────────────────
-# ADD WORKSHOP
-# ──────────────────────────────────────────────
 
 def add_workshop(request):
     studios = _fetch_studios()
@@ -107,9 +100,7 @@ def add_workshop(request):
                   {'studios': studios, 'artists': artists, 'error': error})
 
 
-# ──────────────────────────────────────────────
-# EDIT WORKSHOP
-# ──────────────────────────────────────────────
+
 
 def edit_workshop(request, artist_id, studio_id, workshop_id):
     studios = _fetch_studios()
@@ -174,9 +165,6 @@ def edit_workshop(request, artist_id, studio_id, workshop_id):
                    'artists': artists, 'error': error})
 
 
-# ──────────────────────────────────────────────
-# DELETE WORKSHOP
-# ──────────────────────────────────────────────
 
 def delete_workshop(request, artist_id, studio_id, workshop_id):
     if request.method == 'POST':
@@ -206,9 +194,7 @@ def delete_workshop(request, artist_id, studio_id, workshop_id):
     return redirect('workshop_list')
 
 
-# ──────────────────────────────────────────────
-# WORKSHOP DETAIL (registrations + materials)
-# ──────────────────────────────────────────────
+
 
 def workshop_detail(request, artist_id, studio_id, workshop_id):
     with connection.cursor() as cursor:
@@ -280,9 +266,7 @@ def workshop_detail(request, artist_id, studio_id, workshop_id):
     })
 
 
-# ──────────────────────────────────────────────
-# REGISTER MEMBER TO WORKSHOP
-# ──────────────────────────────────────────────
+
 
 def register_member(request, artist_id, studio_id, workshop_id):
     if request.method == 'POST':
@@ -338,9 +322,6 @@ def register_member(request, artist_id, studio_id, workshop_id):
                     workshop_id=workshop_id)
 
 
-# ──────────────────────────────────────────────
-# REMOVE MEMBER FROM WORKSHOP
-# ──────────────────────────────────────────────
 
 def unregister_member(request, artist_id, studio_id, workshop_id, member_id):
     if request.method == 'POST':
@@ -358,9 +339,7 @@ def unregister_member(request, artist_id, studio_id, workshop_id, member_id):
                     workshop_id=workshop_id)
 
 
-# ──────────────────────────────────────────────
-# LOG MATERIAL CONSUMPTION FOR WORKSHOP
-# ──────────────────────────────────────────────
+
 
 def log_consumption(request, artist_id, studio_id, workshop_id):
     if request.method == 'POST':
@@ -412,3 +391,97 @@ def log_consumption(request, artist_id, studio_id, workshop_id):
     return redirect('workshop_detail',
                     artist_id=artist_id, studio_id=studio_id,
                     workshop_id=workshop_id)
+
+
+
+
+def artist_list(request):
+    """Shown as a section inside the workshops page."""
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT ARTIST_ID, FIRST_NAME, LAST_NAME, EMAIL, SPECIALTY
+            FROM RESIDENT_ARTIST
+            ORDER BY FIRST_NAME
+            """
+        )
+        artists = cursor.fetchall()
+    return render(request, 'artist_list.html', {'artists': artists})
+
+
+def add_artist(request):
+    error = None
+    if request.method == 'POST':
+        artist_id  = request.POST.get('artist_id')
+        first_name = request.POST.get('first_name')
+        last_name  = request.POST.get('last_name')
+        email      = request.POST.get('email')
+        specialty  = request.POST.get('specialty')
+
+        if not all([artist_id, first_name, last_name, email]):
+            error = "ID, first name, last name and email are required."
+        else:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO RESIDENT_ARTIST
+                        (ARTIST_ID, FIRST_NAME, LAST_NAME, EMAIL, SPECIALTY)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    [artist_id, first_name, last_name, email, specialty],
+                )
+            return redirect('artist_list')
+
+    return render(request, 'add_artist.html', {'error': error})
+
+
+def edit_artist(request, artist_id):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT ARTIST_ID, FIRST_NAME, LAST_NAME, EMAIL, SPECIALTY
+            FROM RESIDENT_ARTIST
+            WHERE ARTIST_ID = %s
+            """,
+            [artist_id],
+        )
+        artist = cursor.fetchone()
+
+    if not artist:
+        return redirect('artist_list')
+
+    error = None
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name')
+        last_name  = request.POST.get('last_name')
+        email      = request.POST.get('email')
+        specialty  = request.POST.get('specialty')
+
+        if not all([first_name, last_name, email]):
+            error = "First name, last name and email are required."
+        else:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE RESIDENT_ARTIST
+                    SET FIRST_NAME = %s,
+                        LAST_NAME  = %s,
+                        EMAIL      = %s,
+                        SPECIALTY  = %s
+                    WHERE ARTIST_ID = %s
+                    """,
+                    [first_name, last_name, email, specialty, artist_id],
+                )
+            return redirect('artist_list')
+
+    return render(request, 'edit_artist.html', {'artist': artist, 'error': error})
+
+
+def delete_artist(request, artist_id):
+    if request.method == 'POST':
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM RESIDENT_ARTIST WHERE ARTIST_ID = %s",
+                [artist_id],
+            )
+    return redirect('artist_list')

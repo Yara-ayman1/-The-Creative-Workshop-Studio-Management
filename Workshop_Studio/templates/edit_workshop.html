@@ -81,7 +81,7 @@
        5=workshop_date, 6=start_time, 7=end_time, 8=max_participants #}
 
 <div class="card">
-    <h3>✏️ Edit Workshop</h3>
+    <h3> Edit Workshop</h3>
 
     <div class="info-note">
         ℹ️ Instructor and studio cannot be changed after creation.
@@ -94,9 +94,8 @@
         <input type="text" name="title" value="{{ workshop.3 }}" required>
 
         <label>Craft Type</label>
-         <input type="text" name="craft_type" value="{{ workshop.4 }}" required>
-      
-         
+        <input type="text" name="craft_type" value="{{ workshop.4 }}" placeholder="e.g. Pottery, Painting…" required>
+
         <label>Instructor</label>
         <input type="text" value="(locked after creation)" disabled>
 

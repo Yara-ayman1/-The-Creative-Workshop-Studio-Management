@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .card {
+        max-width: 420px;
+        margin: 50px auto;
+        padding: 25px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        font-family: 'Segoe UI', sans-serif;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background: white;
+    }
+
+    h3 { text-align: center; color: #333; margin-top: 0; }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+
+    label {
+        font-size: 14px;
+        font-weight: bold;
+        color: #555;
+        display: block;
+        margin-top: 12px;
+    }
+
+    .error-box {
+        background: #fdecea;
+        border: 1px solid #f5c6c6;
+        color: #c0392b;
+        padding: 10px 14px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 20px;
+    }
+    button[type="submit"]:hover { background: #218838; }
+
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 12px;
+        color: #666;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .back-link:hover { text-decoration: underline; }
+</style>
+
+{# artist: 0=artist_id, 1=first_name, 2=last_name, 3=email, 4=specialty #}
+
+<div class="card">
+    <h3>✏️ Edit Artist</h3>
+
+    {% if error %}
+    <div class="error-box">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label>Artist ID</label>
+        <input type="text" value="{{ artist.0 }}" disabled style="background:#f5f5f5; color:#aaa;">
+
+        <label>First Name</label>
+        <input type="text" name="first_name" value="{{ artist.1 }}" required>
+
+        <label>Last Name</label>
+        <input type="text" name="last_name" value="{{ artist.2 }}" required>
+
+        <label>Email</label>
+        <input type="email" name="email" value="{{ artist.3 }}" required>
+
+        <label>Specialty <span style="font-weight:normal; color:#999;">(optional)</span></label>
+        <input type="text" name="specialty" value="{{ artist.4|default:'' }}" placeholder="e.g. Pottery, Oil Painting…">
+
+        <button type="submit">Update Artist</button>
+        <a href="{% url 'artist_list' %}" class="back-link">Cancel and Return</a>
+    </form>
+</div>
+
+{% endblock %}
