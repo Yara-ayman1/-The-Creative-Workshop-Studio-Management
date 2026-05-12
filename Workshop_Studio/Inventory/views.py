@@ -1,16 +1,22 @@
 from django.shortcuts import render, redirect
 from django.db import connection
 
+def _fetch_studios():
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT STUDIO_ID, STUDIO_NAME FROM STUDIO ORDER BY STUDIO_NAME")
+        return cursor.fetchall()
 
 def inventory_dashboard(request):
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT MATERIAL_ID, MAT_NAME, UNIT, QUANTITY_IN_STOCK, CATEGORY
-            FROM RAW_MATERIAL
+            SELECT rm.MATERIAL_ID, rm.MAT_NAME, rm.UNIT, rm.QUANTITY_IN_STOCK, rm.CATEGORY, s.STUDIO_NAME
+            FROM RAW_MATERIAL rm
+            LEFT JOIN STUDIO s ON s.STUDIO_ID = rm.STUDIO_ID
         """)
         materials = cursor.fetchall()
+        studios = _fetch_studios()
 
-    return render(request, 'Inventory.html', {'materials': materials})
+    return render(request, 'Inventory.html', {'materials': materials, 'studios': studios})
 
 def add_material(request):
     if request.method == 'POST':
@@ -20,13 +26,14 @@ def add_material(request):
         unit = request.POST.get('unit')
         qty = int(request.POST.get('quantity'))
         cat = request.POST.get('category')
+        studio_id = request.POST.get('studio_id')
 
         with connection.cursor() as cursor:
             cursor.execute("""
                 INSERT INTO RAW_MATERIAL
-                (MATERIAL_ID, MAT_NAME, UNIT, QUANTITY_IN_STOCK, CATEGORY)
-                VALUES (%s, %s, %s, %s, %s)
-            """, [mat_id, name, unit, qty, cat])
+                (MATERIAL_ID, MAT_NAME, UNIT, QUANTITY_IN_STOCK, CATEGORY, STUDIO_ID)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, [mat_id, name, unit, qty, cat, studio_id])
 
     return redirect('inventory_dashboard')
 

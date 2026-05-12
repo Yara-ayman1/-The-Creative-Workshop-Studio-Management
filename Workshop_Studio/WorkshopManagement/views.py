@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.db import connection
+from django.contrib import messages
 
 
 
@@ -237,7 +238,7 @@ def workshop_detail(request, artist_id, studio_id, workshop_id):
         # Materials consumed
         cursor.execute(
             """
-            SELECT rm.MAT_NAME, rm.UNIT, c.QTY_USED
+            SELECT rm.MAT_NAME, rm.UNIT, c.QTY_USED, c.MATERIAL_ID
             FROM CONSUMES c
             JOIN RAW_MATERIAL rm ON rm.MATERIAL_ID = c.MATERIAL_ID
             WHERE c.ARTIST_ID = %s AND c.STUDIO_ID = %s AND c.WORKSHOP_ID = %s
@@ -347,46 +348,137 @@ def log_consumption(request, artist_id, studio_id, workshop_id):
         qty_used    = int(request.POST.get('qty_used', 0))
 
         with connection.cursor() as cursor:
-            # Check existing record
+            # 1. Check stock availability
+            cursor.execute("SELECT QUANTITY_IN_STOCK, MAT_NAME FROM RAW_MATERIAL WHERE MATERIAL_ID = %s", [material_id])
+            row = cursor.fetchone()
+            
+            if not row:
+                messages.error(request, "Material not found.")
+            elif row[0] < qty_used:
+                messages.error(request, f"Insufficient stock for {row[1]}. Available: {row[0]}")
+            else:
+                # 2. Deduct from stock
+                cursor.execute(
+                    "UPDATE RAW_MATERIAL SET QUANTITY_IN_STOCK = QUANTITY_IN_STOCK - %s WHERE MATERIAL_ID = %s",
+                    [qty_used, material_id]
+                )
+
+                # 3. Check existing consumption record
+                cursor.execute(
+                    """
+                    SELECT QTY_USED FROM CONSUMES
+                    WHERE ARTIST_ID = %s AND STUDIO_ID = %s
+                      AND WORKSHOP_ID = %s AND MATERIAL_ID = %s
+                    """,
+                    [artist_id, studio_id, workshop_id, material_id],
+                )
+                existing = cursor.fetchone()
+
+                if existing:
+                    cursor.execute(
+                        """
+                        UPDATE CONSUMES
+                        SET QTY_USED = QTY_USED + %s
+                        WHERE ARTIST_ID = %s AND STUDIO_ID = %s
+                          AND WORKSHOP_ID = %s AND MATERIAL_ID = %s
+                        """,
+                        [qty_used, artist_id, studio_id, workshop_id, material_id],
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        INSERT INTO CONSUMES
+                            (ARTIST_ID, STUDIO_ID, WORKSHOP_ID, MATERIAL_ID, QTY_USED)
+                        VALUES (%s, %s, %s, %s, %s)
+                        """,
+                        [artist_id, studio_id, workshop_id, material_id, qty_used],
+                    )
+                messages.success(request, f"Successfully logged {qty_used} of {row[1]}.")
+
+    return redirect('workshop_detail',
+                    artist_id=artist_id, studio_id=studio_id,
+                    workshop_id=workshop_id)
+
+
+def delete_consumption(request, artist_id, studio_id, workshop_id, material_id):
+    if request.method == 'POST':
+        with connection.cursor() as cursor:
+            # 1. Get the quantity that was used to return it to stock
             cursor.execute(
                 """
                 SELECT QTY_USED FROM CONSUMES
                 WHERE ARTIST_ID = %s AND STUDIO_ID = %s
                   AND WORKSHOP_ID = %s AND MATERIAL_ID = %s
                 """,
-                [artist_id, studio_id, workshop_id, material_id],
+                [artist_id, studio_id, workshop_id, material_id]
             )
-            existing = cursor.fetchone()
-
-            if existing:
+            row = cursor.fetchone()
+            if row:
+                qty = row[0]
+                # 2. Return to stock
+                cursor.execute(
+                    "UPDATE RAW_MATERIAL SET QUANTITY_IN_STOCK = QUANTITY_IN_STOCK + %s WHERE MATERIAL_ID = %s",
+                    [qty, material_id]
+                )
+                # 3. Delete record
                 cursor.execute(
                     """
-                    UPDATE CONSUMES
-                    SET QTY_USED = QTY_USED + %s
+                    DELETE FROM CONSUMES
                     WHERE ARTIST_ID = %s AND STUDIO_ID = %s
                       AND WORKSHOP_ID = %s AND MATERIAL_ID = %s
                     """,
-                    [qty_used, artist_id, studio_id, workshop_id, material_id],
+                    [artist_id, studio_id, workshop_id, material_id]
                 )
-            else:
-                cursor.execute(
-                    """
-                    INSERT INTO CONSUMES
-                        (ARTIST_ID, STUDIO_ID, WORKSHOP_ID, MATERIAL_ID, QTY_USED)
-                    VALUES (%s, %s, %s, %s, %s)
-                    """,
-                    [artist_id, studio_id, workshop_id, material_id, qty_used],
-                )
+                messages.success(request, "Material consumption entry removed and stock restored.")
+    
+    return redirect('workshop_detail',
+                    artist_id=artist_id, studio_id=studio_id,
+                    workshop_id=workshop_id)
 
-            # Deduct from stock
+
+def edit_consumption(request, artist_id, studio_id, workshop_id, material_id):
+    if request.method == 'POST':
+        new_qty = int(request.POST.get('qty_used', 0))
+        
+        with connection.cursor() as cursor:
+            # 1. Get old qty
             cursor.execute(
                 """
-                UPDATE RAW_MATERIAL
-                SET QUANTITY_IN_STOCK = QUANTITY_IN_STOCK - %s
-                WHERE MATERIAL_ID = %s AND QUANTITY_IN_STOCK >= %s
+                SELECT QTY_USED FROM CONSUMES
+                WHERE ARTIST_ID = %s AND STUDIO_ID = %s
+                  AND WORKSHOP_ID = %s AND MATERIAL_ID = %s
                 """,
-                [qty_used, material_id, qty_used],
+                [artist_id, studio_id, workshop_id, material_id]
             )
+            row = cursor.fetchone()
+            if row:
+                old_qty = row[0]
+                diff = new_qty - old_qty # positive if we used more, negative if we used less
+                
+                # 2. Check stock if we are increasing consumption
+                if diff > 0:
+                    cursor.execute("SELECT QUANTITY_IN_STOCK FROM RAW_MATERIAL WHERE MATERIAL_ID = %s", [material_id])
+                    stock = cursor.fetchone()[0]
+                    if stock < diff:
+                        messages.error(request, "Not enough stock to increase consumption.")
+                        return redirect('workshop_detail', artist_id=artist_id, studio_id=studio_id, workshop_id=workshop_id)
+                
+                # 3. Update stock (decrement by diff)
+                cursor.execute(
+                    "UPDATE RAW_MATERIAL SET QUANTITY_IN_STOCK = QUANTITY_IN_STOCK - %s WHERE MATERIAL_ID = %s",
+                    [diff, material_id]
+                )
+                
+                # 4. Update consumption record
+                cursor.execute(
+                    """
+                    UPDATE CONSUMES SET QTY_USED = %s
+                    WHERE ARTIST_ID = %s AND STUDIO_ID = %s
+                      AND WORKSHOP_ID = %s AND MATERIAL_ID = %s
+                    """,
+                    [new_qty, artist_id, studio_id, workshop_id, material_id]
+                )
+                messages.success(request, "Consumption quantity updated.")
 
     return redirect('workshop_detail',
                     artist_id=artist_id, studio_id=studio_id,
@@ -485,3 +577,62 @@ def delete_artist(request, artist_id):
                 [artist_id],
             )
     return redirect('artist_list')
+
+
+# ── Studio Management ──────────────────────────────────────
+
+def studio_list(request):
+    error = None
+    edit_studio = None
+    edit_id = request.GET.get('edit')
+
+    if edit_id:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT STUDIO_ID, STUDIO_NAME FROM STUDIO WHERE STUDIO_ID = %s", [edit_id])
+            edit_studio = cursor.fetchone()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'add':
+            studio_id = request.POST.get('studio_id')
+            studio_name = request.POST.get('studio_name')
+            if not studio_id or not studio_name:
+                error = "Both ID and Name are required."
+            else:
+                try:
+                    with connection.cursor() as cursor:
+                        cursor.execute("INSERT INTO STUDIO (STUDIO_ID, STUDIO_NAME) VALUES (%s, %s)", [studio_id, studio_name])
+                    return redirect('studio_list')
+                except Exception as e:
+                    error = f"Error adding studio: {e}"
+        elif action == 'edit':
+            studio_id = request.POST.get('studio_id')
+            studio_name = request.POST.get('studio_name')
+            if not studio_name:
+                error = "Name is required."
+            else:
+                try:
+                    with connection.cursor() as cursor:
+                        cursor.execute("UPDATE STUDIO SET STUDIO_NAME = %s WHERE STUDIO_ID = %s", [studio_name, studio_id])
+                    return redirect('studio_list')
+                except Exception as e:
+                    error = f"Error updating studio: {e}"
+        elif action == 'delete':
+            studio_id = request.POST.get('studio_id')
+            try:
+                with connection.cursor() as cursor:
+                    # Optional: check if workshops are scheduled in this studio
+                    cursor.execute("DELETE FROM STUDIO WHERE STUDIO_ID = %s", [studio_id])
+                return redirect('studio_list')
+            except Exception as e:
+                error = f"Cannot delete studio. It might be linked to workshops. Error: {e}"
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT STUDIO_ID, STUDIO_NAME FROM STUDIO ORDER BY STUDIO_NAME")
+        studios = cursor.fetchall()
+
+    return render(request, 'studio_list.html', {
+        'studios': studios,
+        'edit_studio': edit_studio,
+        'error': error
+    })

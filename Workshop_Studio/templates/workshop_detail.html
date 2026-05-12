@@ -132,6 +132,18 @@
 
 <div class="manage-container">
 
+    {% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+        <div style="padding: 10px 15px; border-radius: 4px; margin-bottom: 10px; font-size: 14px;
+                    {% if message.tags == 'error' %} background-color: #fdecea; color: #c0392b; border: 1px solid #f5c6c6;
+                    {% else %} background-color: #eafaf1; color: #27ae60; border: 1px solid #d5f5e3; {% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- ── Info banner ── -->
     <div class="info-banner">
         <div>
@@ -221,15 +233,28 @@
                 {% if materials %}
                 <table>
                     <thead>
-                        <tr><th>Material</th><th>Qty Used</th><th>Unit</th></tr>
+                        <tr><th>Material</th><th>Qty Used</th><th>Unit</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                         {% for m in materials %}
-                        {# m: 0=mat_name, 1=unit, 2=qty_used #}
+                        {# m: 0=mat_name, 1=unit, 2=qty_used, 3=material_id #}
                         <tr>
                             <td>{{ m.0 }}</td>
-                            <td><strong>{{ m.2 }}</strong></td>
+                            <td>
+                                <form method="post" action="{% url 'edit_consumption' artist_id studio_id workshop_id m.3 %}" style="display:flex; align-items:center; gap:5px;">
+                                    {% csrf_token %}
+                                    <input type="number" name="qty_used" value="{{ m.2 }}" min="1" style="width: 50px; padding: 2px 5px; font-size: 13px;">
+                                    <button type="submit" class="btn-edit-header" style="background:#f39c12; border:none; padding: 2px 6px;">Save</button>
+                                </form>
+                            </td>
                             <td style="color:#888;">{{ m.1 }}</td>
+                            <td>
+                                <form method="post" action="{% url 'delete_consumption' artist_id studio_id workshop_id m.3 %}"
+                                      onsubmit="return confirm('Remove {{ m.0 }} log? Stock will be returned.');" style="margin:0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-remove" style="padding: 2px 6px;">Delete</button>
+                                </form>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -30,6 +30,7 @@
                     <th>ID</th>
                     <th>Material Name</th>
                     <th>Category</th>
+                    <th>Studio</th>
                     <th>Available Stock</th>
                     <th>Unit</th>
                     <th>Consume</th>
@@ -39,10 +40,12 @@
 
             <tbody>
                 {% for mat in materials %}
+                {# mat: 0=id, 1=name, 2=unit, 3=qty, 4=category, 5=studio_name #}
                 <tr>
                     <td>{{ mat.0 }}</td>
                     <td>{{ mat.1 }}</td>
                     <td>{{ mat.4 }}</td>
+                    <td><span style="color: #2980b9; font-weight: bold;">{{ mat.5|default:"General" }}</span></td>
                     <td class="{% if mat.3 < 5 %}low-stock{% endif %}">
                         {{ mat.3 }}
                     </td>
@@ -87,6 +90,12 @@
               <input type="text" name="category" placeholder="Category" required>
               <input type="number" name="quantity" placeholder="Quantity" required>
               <input type="text" name="unit" placeholder="Unit" required>
+              <select name="studio_id" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                  <option value="" selected>General (No Studio)</option>
+                  {% for s in studios %}
+                  <option value="{{ s.0 }}">{{ s.1 }}</option>
+                  {% endfor %}
+              </select>
               <button class="btn add">Add Material</button>
             </div>
         </form>
