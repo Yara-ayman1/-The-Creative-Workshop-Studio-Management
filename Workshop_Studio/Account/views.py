@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from django.db import connection
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
+from django.contrib import messages
 
 def manage_members(request):
     with connection.cursor() as cursor:
@@ -62,7 +63,26 @@ def edit_member(request, member_id):
 
 def delete_member(request, member_id):
     with connection.cursor() as cursor:
-        cursor.execute("DELETE FROM MEMBER WHERE MEMBER_ID = %s", [member_id])
+        cursor.execute("SELECT COUNT(*) FROM RENTS WHERE MEMBER_ID = %s", [member_id])
+        rents_count = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM REGISTERS WHERE MEMBER_ID = %s", [member_id])
+        registers_count = cursor.fetchone()[0]
+
+        if rents_count or registers_count:
+            reasons = []
+            if rents_count:
+                reasons.append(f"{rents_count} rent record{'s' if rents_count != 1 else ''}")
+            if registers_count:
+                reasons.append(f"{registers_count} registration record{'s' if registers_count != 1 else ''}")
+            messages.error(
+                request,
+                "Cannot delete member. This member is still referenced by " +
+                " and ".join(reasons) + ". Remove those records first."
+            )
+        else:
+            cursor.execute("DELETE FROM MEMBER WHERE MEMBER_ID = %s", [member_id])
+            messages.success(request, "Member deleted successfully.")
+
     return redirect('MembersList')
 
 

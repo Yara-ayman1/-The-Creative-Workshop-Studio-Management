@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.db import connection
 from django.contrib import messages
-from datetime import datetime
+from datetime import datetime, date, time
 
 
 
@@ -279,7 +279,7 @@ def register_member(request, artist_id, studio_id, workshop_id):
             # Check if workshop has ended
             cursor.execute(
                 """
-                SELECT END_TIME, TITLE FROM WORKSHOP
+                SELECT WORKSHOP_DATE, END_TIME, TITLE FROM WORKSHOP
                 WHERE ARTIST_ID = %s AND STUDIO_ID = %s AND WORKSHOP_ID = %s
                 """,
                 [artist_id, studio_id, workshop_id],
@@ -289,9 +289,14 @@ def register_member(request, artist_id, studio_id, workshop_id):
                 messages.error(request, "Workshop not found.")
                 return redirect('workshop_detail', artist_id=artist_id, studio_id=studio_id, workshop_id=workshop_id)
             
-            end_time = row[0]
-            if end_time < datetime.now():
-                messages.error(request, f"Cannot register for '{row[1]}' because it has already ended.")
+            workshop_date, end_time, title = row
+            if isinstance(workshop_date, datetime):
+                workshop_end = workshop_date
+            else:
+                workshop_end = datetime.combine(workshop_date, end_time)
+
+            if workshop_end < datetime.now():
+                messages.error(request, f"Cannot register for '{title}' because it has already ended.")
                 return redirect('workshop_detail', artist_id=artist_id, studio_id=studio_id, workshop_id=workshop_id)
 
             # Check capacity
@@ -595,9 +600,33 @@ def delete_artist(request, artist_id):
     if request.method == 'POST':
         with connection.cursor() as cursor:
             cursor.execute(
-                "DELETE FROM RESIDENT_ARTIST WHERE ARTIST_ID = %s",
+                "SELECT COUNT(*) FROM WORKSHOP WHERE ARTIST_ID = %s",
                 [artist_id],
             )
+            workshop_count = cursor.fetchone()[0]
+            cursor.execute(
+                "SELECT COUNT(*) FROM REGISTERS WHERE ARTIST_ID = %s",
+                [artist_id],
+            )
+            register_count = cursor.fetchone()[0]
+
+            if workshop_count or register_count:
+                reasons = []
+                if workshop_count:
+                    reasons.append(f"{workshop_count} workshop{'s' if workshop_count != 1 else ''}")
+                if register_count:
+                    reasons.append(f"{register_count} registration record{'s' if register_count != 1 else ''}")
+                messages.error(
+                    request,
+                    "Cannot delete artist. This artist is still referenced by " +
+                    " and ".join(reasons) + ". Remove those records first."
+                )
+            else:
+                cursor.execute(
+                    "DELETE FROM RESIDENT_ARTIST WHERE ARTIST_ID = %s",
+                    [artist_id],
+                )
+                messages.success(request, "Artist deleted successfully.")
     return redirect('artist_list')
 
 
