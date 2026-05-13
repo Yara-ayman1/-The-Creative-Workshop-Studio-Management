@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'Inventory',
     'Tools',
     'WorkshopManagement',
+    'studio',
+    'Booking',
 ]
 
 MIDDLEWARE = [
@@ -92,9 +94,9 @@ TEAM_DB_CONFIG = {
         'NAME': 'The Creative Workshop & Studio Management',
         'HOST': 'DESKTOP-IRAR4LT',
     },
-    'Lekaa-LAPTOP': {  
-        'NAME': '',
-        'HOST': '',
+   'DESKTOP-RJE45Q4': {  
+        'NAME': 'The Creative Workshop & Studio Management',
+        'HOST': 'DESKTOP-RJE45Q4',
     },
     'Asmaa-LAPTOP': {  
         'NAME': '',
