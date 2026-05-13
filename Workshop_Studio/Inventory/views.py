@@ -27,6 +27,10 @@ def add_material(request):
         qty = int(request.POST.get('quantity'))
         cat = request.POST.get('category')
         studio_id = request.POST.get('studio_id')
+        
+        # Convert empty string to None for SQL NULL
+        if not studio_id or studio_id == 'None':
+            studio_id = None
 
         with connection.cursor() as cursor:
             cursor.execute("""

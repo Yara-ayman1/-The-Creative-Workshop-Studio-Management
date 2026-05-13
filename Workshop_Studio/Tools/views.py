@@ -4,12 +4,13 @@ from django.shortcuts import render, redirect
 from django.db import connection
 from datetime import datetime
 
+from django.contrib import messages
+
 def tool_dashboard(request):
 
     with connection.cursor() as cursor:
 
         cursor.execute("""
-
             SELECT 
                 TOOL.TOOL_ID,
                 TOOL.STUDIO_ID,
@@ -25,8 +26,7 @@ def tool_dashboard(request):
             FROM TOOL
 
             LEFT JOIN RENTS
-            ON TOOL.TOOL_ID = RENTS.TOOL_ID
-
+            ON TOOL.TOOL_ID = RENTS.TOOL_ID AND RENTS.ACTUAL_RETURN_TIME IS NULL
         """)
 
         tools = cursor.fetchall()
@@ -52,49 +52,63 @@ def rent_tool(request):
             "%Y-%m-%dT%H:%M"
         )
         with connection.cursor() as cursor:
-
+            # Check if already rented (active)
             cursor.execute("""
                 SELECT *
                 FROM RENTS
-                WHERE TOOL_ID = %s
+                WHERE TOOL_ID = %s AND ACTUAL_RETURN_TIME IS NULL
             """, [tool_id])
 
             exists = cursor.fetchone()
             if exists:
-                cursor.execute("""
-
-                    UPDATE RENTS
-                    SET MEMBER_ID = %s,
-                        PICKUP_TIME = %s,
-                        RETURN_TIME = %s
-                    WHERE TOOL_ID = %s
-                """, [
-                    member_id,
-                    pickup_time,
-                    return_time,
-                    tool_id
-                ])
+                # If it's the SAME member, maybe they are just updating the return time
+                if str(exists[0]) == str(member_id): # Assuming exists[0] is MEMBER_ID from RENTS (wait, checking RENTS Columns)
+                    # RENTS: MEMBER_ID, TOOL_ID, PICKUP_TIME, RETURN_TIME, ACTUAL_RETURN_TIME
+                    # Let's check column order for RENTS from my earlier shell command: [('MEMBER_ID',), ('TOOL_ID',), ('PICKUP_TIME',), ('RETURN_TIME',), ('ACTUAL_RETURN_TIME',)]
+                    cursor.execute("""
+                        UPDATE RENTS
+                        SET PICKUP_TIME = %s,
+                            RETURN_TIME = %s
+                        WHERE TOOL_ID = %s AND ACTUAL_RETURN_TIME IS NULL
+                    """, [
+                        pickup_time,
+                        return_time,
+                        tool_id
+                    ])
+                    messages.success(request, "Rental times updated.")
+                else:
+                    messages.error(request, "This tool is currently rented by another member.")
+                    return redirect('tool_dashboard')
             else:
+                # New rental record for history
                 cursor.execute("""
-
                     INSERT INTO RENTS
                     (
                         TOOL_ID,
                         MEMBER_ID,
                         PICKUP_TIME,
-                        RETURN_TIME
+                        RETURN_TIME,
+                        ACTUAL_RETURN_TIME
                     )
-                    VALUES (%s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, NULL)
                 """, [
                     tool_id,
                     member_id,
                     pickup_time,
                     return_time
                 ])
+                
+                # Increment total rentals only on new rental
+                cursor.execute("""
+                    UPDATE TOOL
+                    SET TOTAL_RENTALS = TOTAL_RENTALS + 1
+                    WHERE TOOL_ID = %s
+                """, [tool_id])
+                messages.success(request, "Tool rented successfully.")
+
             cursor.execute("""
                 UPDATE TOOL
-                SET TOOL_CONDITION = %s,
-                    TOTAL_RENTALS = TOTAL_RENTALS + 1
+                SET TOOL_CONDITION = %s
                 WHERE TOOL_ID = %s
             """, [
                 condition,
@@ -111,21 +125,24 @@ def return_tool(request):
         condition = request.POST.get('condition')
 
         with connection.cursor() as cursor:
+            # Check if it was actually rented
+            cursor.execute("SELECT 1 FROM RENTS WHERE TOOL_ID = %s AND ACTUAL_RETURN_TIME IS NULL", [tool_id])
+            if not cursor.fetchone():
+                messages.warning(request, "This tool was not marked as rented.")
+                return redirect('tool_dashboard')
 
             cursor.execute("""
-
-                DELETE FROM RENTS
-                WHERE TOOL_ID = %s
-
+                UPDATE RENTS
+                SET ACTUAL_RETURN_TIME = GETDATE()
+                WHERE TOOL_ID = %s AND ACTUAL_RETURN_TIME IS NULL
             """, [tool_id])
 
             cursor.execute("""
-
                 UPDATE TOOL
                 SET TOOL_CONDITION = %s
                 WHERE TOOL_ID = %s
-
             """, [condition, tool_id])
+            messages.success(request, "Tool returned successfully.")
 
     return redirect('tool_dashboard')
 
@@ -142,18 +159,16 @@ def add_tool(request):
         with connection.cursor() as cursor:
 
             cursor.execute("""
-
                 INSERT INTO TOOL
-                (TOOL_ID, TOOL_NAME, DESCRIPTION, TOOL_CONDITION, TOTAL_RENTALS)
-
-                VALUES (%s, %s, %s, %s, %s)
-
+                (TOOL_ID, TOOL_NAME, DESCRIPTION, TOOL_CONDITION, TOTAL_RENTALS, STUDIO_ID)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """, [
                 tool_id,
                 tool_name,
                 description,
                 condition,
-                0
+                0,
+                studio_id
             ])
 
     return redirect('tool_dashboard')

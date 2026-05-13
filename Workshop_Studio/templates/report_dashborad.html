@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    /* ── Page wrapper ── */
+    .reports-page {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 30px;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        padding: 20px 25px;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .page-header h2 { margin: 0; color: #333; font-size: 1.4rem; }
+    .period-badge {
+        background: #e8f4fd;
+        color: #2980b9;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    /* ── Section cards ── */
+    .report-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .report-card-header {
+        background-color: #3498db;
+        color: white;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .report-card-header .query-num {
+        background: rgba(255,255,255,0.25);
+        border-radius: 50%;
+        width: 26px; height: 26px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 13px;
+        flex-shrink: 0;
+    }
+    .report-card-header h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+
+    .report-card-body { padding: 20px; }
+
+    /* ── No-data state ── */
+    .no-data {
+        text-align: center;
+        padding: 20px;
+        color: #999;
+        font-size: 14px;
+    }
+
+    /* ── Highlight box (Q1, Q3 – single result) ── */
+    .highlight-box {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+    .highlight-stat {
+        background: #f0f8e8;
+        border: 1px solid #c5dea5;
+        border-radius: 8px;
+        padding: 16px 24px;
+        text-align: center;
+        min-width: 120px;
+    }
+    .highlight-stat .big-num {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #27ae60;
+        line-height: 1;
+    }
+    .highlight-stat .big-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 4px;
+    }
+    .highlight-meta {
+        flex: 1;
+    }
+    .highlight-meta .title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 6px;
+    }
+    .highlight-meta .meta-row {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 3px;
+    }
+    .highlight-meta .meta-row span { color: #333; font-weight: 600; }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid #eee; padding: 10px 14px; text-align: left; }
+    th { background-color: #f2f2f2; color: #555; font-size: 13px; text-transform: uppercase; }
+    tr:hover { background-color: #fafafa; }
+
+    /* ── Q5 grouped layout ── */
+    .workshop-group { margin-bottom: 18px; }
+    .workshop-group:last-child { margin-bottom: 0; }
+    .workshop-group-header {
+        background: #f7f9fc;
+        border: 1px solid #dde4ed;
+        border-radius: 6px 6px 0 0;
+        padding: 8px 14px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .workshop-group-header strong { color: #2c3e50; font-size: 14px; }
+    .workshop-group-header .ws-meta { font-size: 12px; color: #888; }
+    .workshop-group table { border-radius: 0 0 6px 6px; overflow: hidden; }
+    .workshop-group thead th { background: #eaf0f8; }
+
+    /* ── Q6 TOTAL_RENTALS sync note ── */
+    .sync-note {
+        background: #fff8e1;
+        border: 1px solid #f0d060;
+        color: #7a5f00;
+        padding: 8px 14px;
+        border-radius: 5px;
+        font-size: 13px;
+        margin-bottom: 14px;
+    }
+    .sync-ok   { color: #27ae60; font-weight: bold; }
+    .sync-warn { color: #e67e22; font-weight: bold; }
+
+    /* ── Badges ── */
+    .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        background: #e8f4fd;
+        color: #2980b9;
+    }
+    .badge-inactive { background: #fdecea; color: #c0392b; }
+    .badge-ok       { background: #eafaf1; color: #27ae60; }
+
+    /* ── Two-col grid for Q1+Q3 ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+
+<div class="reports-page">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h2>📊 Admin Reports Panel</h2>
+        <div class="period-badge">📅 Period: {{ period_start }} → {{ period_end }}</div>
+    </div>
+
+    <!-- ── Row 1: Q1 + Q3 side by side ── -->
+    <div class="two-col">
+
+        <!-- Q1: Top craft workshop -->
+        <div class="report-card">
+            <div class="report-card-header">
+                <div class="query-num">1</div>
+                <h3>Craft Workshop with Most Participants</h3>
+            </div>
+            <div class="report-card-body">
+                {% if q1 %}
+                {# q1: title, craft_type, count, instructor, studio, date #}
+                <div class="highlight-box">
+                    <div class="highlight-stat">
+                        <div class="big-num">{{ q1.2 }}</div>
+                        <div class="big-label">Participants</div>
+                    </div>
+                    <div class="highlight-meta">
+                        <div class="title">{{ q1.0 }}</div>
+                        <div class="meta-row">🎨 Craft: <span>{{ q1.1 }}</span></div>
+                        <div class="meta-row">👤 Instructor: <span>{{ q1.3 }}</span></div>
+                        <div class="meta-row">🏛 Studio: <span>{{ q1.4 }}</span></div>
+                        <div class="meta-row">📅 Date: <span>{{ q1.5 }}</span></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-data">No workshops were held last month.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Q3: Top instructor -->
+        <div class="report-card">
+            <div class="report-card-header">
+                <div class="query-num">3</div>
+                <h3>Most Active Instructor</h3>
+            </div>
+            <div class="report-card-body">
+                {% if q3 %}
+                {# q3: artist_id, name, specialty, count #}
+                <div class="highlight-box">
+                    <div class="highlight-stat">
+                        <div class="big-num">{{ q3.3 }}</div>
+                        <div class="big-label">Workshops</div>
+                    </div>
+                    <div class="highlight-meta">
+                        <div class="title">{{ q3.1 }}</div>
+                        <div class="meta-row">🎭 Specialty: <span>{{ q3.2|default:"—" }}</span></div>
+                        <div class="meta-row">🪪 Artist ID: <span>{{ q3.0 }}</span></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-data">No workshops were held last month.</div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div><!-- /two-col -->
+
+    <!-- Q2: Inactive studios -->
+    <div class="report-card">
+        <div class="report-card-header">
+            <div class="query-num">2</div>
+            <h3>Studios with No Bookings or Workshops Last Month</h3>
+        </div>
+        <div class="report-card-body">
+            {% if q2 %}
+            {# q2: studio_id, studio_name, studio_type, location #}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Studio Name</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in q2 %}
+                    <tr>
+                        <td>{{ s.0 }}</td>
+                        <td><strong>{{ s.1 }}</strong></td>
+                        <td>{{ s.2|default:"—" }}</td>
+                        <td>{{ s.3|default:"—" }}</td>
+                        <td><span class="badge badge-inactive">Inactive</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data">🎉 All studios were active last month.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Q4: Inactive members -->
+    <div class="report-card">
+        <div class="report-card-header">
+            <div class="query-num">4</div>
+            <h3>Members with No Tool Rentals or Workshop Registrations</h3>
+        </div>
+        <div class="report-card-body">
+            {% if q4 %}
+            {# q4: member_id, name, email, membership_type #}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Membership</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in q4 %}
+                    <tr>
+                        <td>{{ m.0 }}</td>
+                        <td><strong>{{ m.1 }}</strong></td>
+                        <td style="color:#777;">{{ m.2 }}</td>
+                        <td><span class="badge">{{ m.3|default:"—" }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data">🎉 All members were active last month.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Q5: Materials per workshop -->
+    <div class="report-card">
+        <div class="report-card-header">
+            <div class="query-num">5</div>
+            <h3>Raw Materials Consumed per Workshop</h3>
+        </div>
+        <div class="report-card-body">
+            {% if q5 %}
+            {% for workshop_key, mat_list in q5.items %}
+            {# workshop_key: (title, craft_type, date) #}
+            <div class="workshop-group">
+                <div class="workshop-group-header">
+                    <strong>{{ workshop_key.0 }}</strong>
+                    <span class="ws-meta">🎨 {{ workshop_key.1 }}</span>
+                    <span class="ws-meta">📅 {{ workshop_key.2 }}</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Qty Used</th>
+                            <th>Unit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mat in mat_list %}
+                        {# mat: (name, unit, qty) #}
+                        <tr>
+                            <td>{{ mat.0 }}</td>
+                            <td><strong>{{ mat.2 }}</strong></td>
+                            <td style="color:#888;">{{ mat.1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="no-data">No material consumption recorded for workshops last month.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Q6: Tool rentals -->
+    <div class="report-card">
+        <div class="report-card-header">
+            <div class="query-num">6</div>
+            <h3>Tool Descriptions &amp; Total Rentals</h3>
+        </div>
+        <div class="report-card-body">
+            {% if q6 %}
+            {# q6: tool_id, tool_name, description, total_rentals #}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tool Name</th>
+                        <th>Description</th>
+                        <th>Total Rentals</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in q6 %}
+                    <tr>
+                        <td>{{ t.0 }}</td>
+                        <td><strong>{{ t.1 }}</strong></td>
+                        <td style="color:#666; font-size:13px;">{{ t.2|default:"—" }}</td>
+                        <td style="text-align:center;"><strong>{{ t.3|default:0 }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data">No tools found in the system.</div>
+            {% endif %}
+        </div>
+    </div>
+
+</div><!-- /reports-page -->
+
+{% endblock %}

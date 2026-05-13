@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'WorkshopManagement',
     'studio',
     'Booking',
+    'Reports',
 ]
 
 MIDDLEWARE = [

@@ -25,4 +25,5 @@ urlpatterns = [
     path('Manage Workshop/', include('WorkshopManagement.urls')),
     path('studios/', include('studio.urls')),
     path('booking/', include('Booking.urls')),
+    path('reports/', include('Reports.urls')),
 ]

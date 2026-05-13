@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.db import connection
 from django.contrib import messages
+from datetime import datetime
 
 
 
@@ -275,6 +276,24 @@ def register_member(request, artist_id, studio_id, workshop_id):
         reg_date  = request.POST.get('reg_date')
 
         with connection.cursor() as cursor:
+            # Check if workshop has ended
+            cursor.execute(
+                """
+                SELECT END_TIME, TITLE FROM WORKSHOP
+                WHERE ARTIST_ID = %s AND STUDIO_ID = %s AND WORKSHOP_ID = %s
+                """,
+                [artist_id, studio_id, workshop_id],
+            )
+            row = cursor.fetchone()
+            if not row:
+                messages.error(request, "Workshop not found.")
+                return redirect('workshop_detail', artist_id=artist_id, studio_id=studio_id, workshop_id=workshop_id)
+            
+            end_time = row[0]
+            if end_time < datetime.now():
+                messages.error(request, f"Cannot register for '{row[1]}' because it has already ended.")
+                return redirect('workshop_detail', artist_id=artist_id, studio_id=studio_id, workshop_id=workshop_id)
+
             # Check capacity
             cursor.execute(
                 """
@@ -295,7 +314,7 @@ def register_member(request, artist_id, studio_id, workshop_id):
             current = cursor.fetchone()[0]
 
             if current >= max_p:
-                # Redirect back; capacity full (could add a flash message)
+                messages.error(request, "Workshop is at full capacity.")
                 return redirect('workshop_detail',
                                 artist_id=artist_id, studio_id=studio_id,
                                 workshop_id=workshop_id)
@@ -317,6 +336,9 @@ def register_member(request, artist_id, studio_id, workshop_id):
                     """,
                     [member_id, artist_id, studio_id, workshop_id, reg_date],
                 )
+                messages.success(request, "Member registered successfully.")
+            else:
+                messages.warning(request, "Member is already registered for this workshop.")
 
     return redirect('workshop_detail',
                     artist_id=artist_id, studio_id=studio_id,
@@ -588,47 +610,63 @@ def studio_list(request):
 
     if edit_id:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT STUDIO_ID, STUDIO_NAME FROM STUDIO WHERE STUDIO_ID = %s", [edit_id])
+            cursor.execute("SELECT STUDIO_ID, STUDIO_NAME, LOCATION, CAPACITY, STUDIO_TYPE, EQUIPMENT FROM STUDIO WHERE STUDIO_ID = %s", [edit_id])
             edit_studio = cursor.fetchone()
 
     if request.method == 'POST':
         action = request.POST.get('action')
+        
+        studio_id = request.POST.get('studio_id')
+        studio_name = request.POST.get('studio_name')
+        location = request.POST.get('location') or None
+        capacity = request.POST.get('capacity')
+        studio_type = request.POST.get('studio_type') or None
+        equipment = request.POST.get('equipment') or None
+        
+        # Numeric field handling
+        if capacity == "" or capacity is None:
+            capacity = None
+        else:
+            try:
+                capacity = int(capacity)
+            except ValueError:
+                capacity = None
+
         if action == 'add':
-            studio_id = request.POST.get('studio_id')
-            studio_name = request.POST.get('studio_name')
-            if not studio_id or not studio_name:
-                error = "Both ID and Name are required."
+            if not studio_id:
+                error = "Studio ID is required."
             else:
                 try:
                     with connection.cursor() as cursor:
-                        cursor.execute("INSERT INTO STUDIO (STUDIO_ID, STUDIO_NAME) VALUES (%s, %s)", [studio_id, studio_name])
+                        cursor.execute("""
+                            INSERT INTO STUDIO (STUDIO_ID, STUDIO_NAME, LOCATION, CAPACITY, STUDIO_TYPE, EQUIPMENT) 
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                        """, [studio_id, studio_name, location, capacity, studio_type, equipment])
                     return redirect('studio_list')
                 except Exception as e:
                     error = f"Error adding studio: {e}"
         elif action == 'edit':
-            studio_id = request.POST.get('studio_id')
-            studio_name = request.POST.get('studio_name')
-            if not studio_name:
-                error = "Name is required."
-            else:
-                try:
-                    with connection.cursor() as cursor:
-                        cursor.execute("UPDATE STUDIO SET STUDIO_NAME = %s WHERE STUDIO_ID = %s", [studio_name, studio_id])
-                    return redirect('studio_list')
-                except Exception as e:
-                    error = f"Error updating studio: {e}"
-        elif action == 'delete':
-            studio_id = request.POST.get('studio_id')
             try:
                 with connection.cursor() as cursor:
-                    # Optional: check if workshops are scheduled in this studio
-                    cursor.execute("DELETE FROM STUDIO WHERE STUDIO_ID = %s", [studio_id])
+                    cursor.execute("""
+                        UPDATE STUDIO 
+                        SET STUDIO_NAME = %s, LOCATION = %s, CAPACITY = %s, STUDIO_TYPE = %s, EQUIPMENT = %s 
+                        WHERE STUDIO_ID = %s
+                    """, [studio_name, location, capacity, studio_type, equipment, studio_id])
+                return redirect('studio_list')
+            except Exception as e:
+                error = f"Error updating studio: {e}"
+        elif action == 'delete':
+            studio_id_to_delete = request.POST.get('studio_id')
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute("DELETE FROM STUDIO WHERE STUDIO_ID = %s", [studio_id_to_delete])
                 return redirect('studio_list')
             except Exception as e:
                 error = f"Cannot delete studio. It might be linked to workshops. Error: {e}"
 
     with connection.cursor() as cursor:
-        cursor.execute("SELECT STUDIO_ID, STUDIO_NAME FROM STUDIO ORDER BY STUDIO_NAME")
+        cursor.execute("SELECT STUDIO_ID, STUDIO_NAME, LOCATION, CAPACITY, STUDIO_TYPE, EQUIPMENT FROM STUDIO ORDER BY STUDIO_NAME")
         studios = cursor.fetchall()
 
     return render(request, 'studio_list.html', {
