@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+.booking-container {
+
+    width: 500px;
+    margin: 40px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.booking-container h2 {
+    margin-bottom: 20px;
+}
+
+.booking-container input,
+.booking-container select {
+
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.booking-container button {
+
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.booking-container button:hover {
+    background-color: #2980b9;
+}
+
+/* Success Message */
+.success-message {
+    color: #2e7d32;
+    background-color: #e8f5e9;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* Error Message */
+.error-message {
+    color: #c62828;
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+</style>
+
+<div class="booking-container">
+
+    <h2>Book Studio</h2>
+
+    {% if success_message %}
+        <p class="success-message">
+            {{ success_message }}
+        </p>
+    {% endif %}
+
+    {% if error_message %}
+        <p class="error-message">
+            {{ error_message }}
+        </p>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <label>Member ID</label>
+        <input type="number" name="member_id" required>
+
+        <label>Studio</label>
+        <select name="studio_id" required>
+
+            {% for studio in studios %}
+                <option value="{{ studio.0 }}">
+                    {{ studio.1 }}
+                </option>
+            {% endfor %}
+
+        </select>
+
+        <label>Date</label>
+        <input type="date" name="booking_date" required>
+
+        <label>Start Time</label>
+        <input type="time" name="start_time" required>
+
+        <label>End Time</label>
+        <input type="time" name="end_time" required>
+
+        <button type="submit">
+            Book Now
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

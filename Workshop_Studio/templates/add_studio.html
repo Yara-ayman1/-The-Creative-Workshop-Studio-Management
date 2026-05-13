@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+
+    .form-container {
+
+        width: 500px;
+        margin: 40px auto;
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input {
+
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+
+    button {
+
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+
+</style>
+
+<div class="form-container">
+
+    <h2>Add Studio</h2>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <input type="number"
+               name="studio_id"
+               placeholder="Studio ID"
+               required>
+
+        <input type="text"
+               name="studio_name"
+               placeholder="Studio Name"
+               required>
+
+        <input type="text"
+               name="location"
+               placeholder="Location"
+               required>
+
+        <input type="number"
+               name="capacity"
+               placeholder="Capacity"
+               required>
+
+        <input type="text"
+               name="studio_type"
+               placeholder="Studio Type"
+               required>
+
+        <input type="text"
+               name="equipment"
+               placeholder="Equipment"
+               required>
+
+        <button type="submit">
+
+            Add Studio
+
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}
