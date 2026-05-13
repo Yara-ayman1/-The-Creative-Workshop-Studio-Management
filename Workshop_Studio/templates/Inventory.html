@@ -1,107 +1,122 @@
 {% extends 'base.html' %}
-{% load static %}
+{% block title %}Inventory — Creative Workshop{% endblock %}
 {% block content %}
 
+<style>
+    .inline-form { display: flex; gap: 6px; align-items: center; }
+    .inline-form input[type="number"] { width: 72px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 13px; }
+    .low-stock { color: #b91c1c; font-weight: 700; }
+    .add-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; align-items: end; margin-top: 16px; }
+</style>
 
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Raw Material Inventory</title>
-    <link rel="stylesheet" href="{% static 'css/inventory.css' %}">
-</head>
-
-<body>
-
-<div class="container">
-
-    <header class="header">
-        <h1>Raw Material Inventory</h1>
-        <p>Add • Track Materials</p>
-    </header>
-
-    <section class="card">
-        <h2>📋 Material List</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Material Name</th>
-                    <th>Category</th>
-                    <th>Studio</th>
-                    <th>Available Stock</th>
-                    <th>Unit</th>
-                    <th>Consume</th>
-                    <th>Add Stock</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for mat in materials %}
-                {# mat: 0=id, 1=name, 2=unit, 3=qty, 4=category, 5=studio_name #}
-                <tr>
-                    <td>{{ mat.0 }}</td>
-                    <td>{{ mat.1 }}</td>
-                    <td>{{ mat.4 }}</td>
-                    <td><span style="color: #2980b9; font-weight: bold;">{{ mat.5|default:"General" }}</span></td>
-                    <td class="{% if mat.3 < 5 %}low-stock{% endif %}">
-                        {{ mat.3 }}
-                    </td>
-                    <td>{{ mat.2 }}</td>
-
-                    <td>
-                        <form method="POST" action="{% url 'record_consumption' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="mat_id" value="{{ mat.0 }}" required>
-                            <input type="number" name="amount" placeholder="amount" class="input-small" required>
-                            <button class="btn consume">Consume</button>
-                        </form>
-                    </td>
-                    <td>
-                        <form method="POST" action="{% url 'increase_stock' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="mat_id" value="{{ mat.0 }}" required>
-                            <input type="number" name="amount" placeholder="amount" class="input-small" required>
-                            <button class="btn add_amount">Add</button>
-                        </form>
-                    </td>
-                    <td>
-                        <form method="POST" action="{% url 'delete_material' %}">
-                          {% csrf_token %}
-                          <input type="hidden" name="mat_id" value="{{ mat.0 }}">
-                          <button type="submit" class="btn-delete">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-
-    <section class="card">
-        <h2>➕ Add New Material</h2>
-        <form method="POST" action="{% url 'add_material' %}">
-            {% csrf_token %}
-            <div class="grid">
-              <input type="number" name="material_id" placeholder="ID" required>
-              <input type="text" name="name" placeholder="Name" required>
-              <input type="text" name="category" placeholder="Category" required>
-              <input type="number" name="quantity" placeholder="Quantity" required>
-              <input type="text" name="unit" placeholder="Unit" required>
-              <select name="studio_id" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-                  <option value="" selected>General (No Studio)</option>
-                  {% for s in studios %}
-                  <option value="{{ s.0 }}">{{ s.1 }}</option>
-                  {% endfor %}
-              </select>
-              <button class="btn add">Add Material</button>
-            </div>
-        </form>
-    </section>
+<div class="page-header">
+    <h2>Raw Material Inventory</h2>
 </div>
 
-</body>
-</html>
+<!-- Materials table -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">Material List</div>
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Material Name</th>
+                        <th>Category</th>
+                        <th>Studio</th>
+                        <th>Stock</th>
+                        <th>Unit</th>
+                        <th>Consume</th>
+                        <th>Add Stock</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mat in materials %}
+                    {# mat: 0=id, 1=name, 2=unit, 3=qty, 4=category, 5=studio_name #}
+                    <tr>
+                        <td><strong>{{ mat.0 }}</strong></td>
+                        <td>{{ mat.1 }}</td>
+                        <td><span class="badge badge-gray">{{ mat.4 }}</span></td>
+                        <td>{{ mat.5|default:"General" }}</td>
+                        <td class="{% if mat.3 < 5 %}low-stock{% endif %}">{{ mat.3 }}</td>
+                        <td>{{ mat.2 }}</td>
+                        <td>
+                            <form method="POST" action="{% url 'record_consumption' %}" class="inline-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="mat_id" value="{{ mat.0 }}">
+                                <input type="number" name="amount" placeholder="qty" min="1" required>
+                                <button type="submit" class="btn btn-warning btn-sm">Consume</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form method="POST" action="{% url 'increase_stock' %}" class="inline-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="mat_id" value="{{ mat.0 }}">
+                                <input type="number" name="amount" placeholder="qty" min="1" required>
+                                <button type="submit" class="btn btn-success btn-sm">Add</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form method="POST" action="{% url 'delete_material' %}" onsubmit="return confirm('Delete {{ mat.1 }}?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="mat_id" value="{{ mat.0 }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="empty-state">No materials yet. Add one below.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add material form -->
+<div class="card">
+    <div class="card-header">Add New Material</div>
+    <div class="card-body">
+        <form method="POST" action="{% url 'add_material' %}">
+            {% csrf_token %}
+            <div class="add-form-grid">
+                <div class="form-group">
+                    <label>Material ID</label>
+                    <input type="number" name="material_id" class="form-control" placeholder="e.g. 101" required>
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Clay" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" name="category" class="form-control" placeholder="e.g. Ceramics" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" name="quantity" class="form-control" placeholder="e.g. 50" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Unit</label>
+                    <input type="text" name="unit" class="form-control" placeholder="e.g. kg" required>
+                </div>
+                <div class="form-group">
+                    <label>Studio</label>
+                    <select name="studio_id" class="form-control">
+                        <option value="">General (No Studio)</option>
+                        {% for s in studios %}
+                        <option value="{{ s.0 }}">{{ s.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 10px;">Add Material</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

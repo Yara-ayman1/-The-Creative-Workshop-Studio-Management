@@ -1,135 +1,61 @@
 {% extends 'base.html' %}
+{% block title %}Workshops — Creative Workshop{% endblock %}
 {% block content %}
 
-<style>
-    .manage-container {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        margin: 30px;
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+<div class="page-header">
+    <h2>Workshops</h2>
+    <a href="{% url 'add_workshop' %}" class="btn btn-success">+ New Workshop</a>
+</div>
 
-    .manage-container h2 { color: #333; margin-top: 0; }
-
-    .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        min-width: 900px;
-    }
-
-    th, td { border: 1px solid #eee; padding: 12px 15px; text-align: left; }
-
-    th {
-        background-color: #3498db;
-        color: white;
-        text-transform: uppercase;
-        font-size: 14px;
-    }
-
-    tr:hover { background-color: #f5f5f5; }
-
-    .btn-add {
-        padding: 10px 20px;
-        background-color: #27ae60;
-        border-radius: 5px;
-        color: white !important;
-        text-decoration: none;
-        display: inline-block;
-        transition: background 0.3s;
-        font-weight: bold;
-    }
-    .btn-add:hover { background-color: #219150; }
-
-    .badge {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: bold;
-        background-color: #e8f4fd;
-        color: #2980b9;
-    }
-
-    .action-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-
-    .btn-view   { padding: 6px 12px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; }
-    .btn-edit   { padding: 6px 12px; background-color: #f39c12; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; }
-    .btn-delete { padding: 6px 12px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-
-    .btn-view:hover   { background-color: #2980b9; }
-    .btn-edit:hover   { background-color: #e67e22; }
-    .btn-delete:hover { background-color: #c0392b; }
-
-    .empty-state { text-align: center; padding: 40px; color: #999; font-size: 15px; }
-</style>
-
-<div class="manage-container">
-    <h2> Workshops Management</h2>
-
-    <a href="{% url 'add_workshop' %}" class="btn-add">+ New Workshop</a>
-
-    <hr style="margin-top: 20px; border: 0; border-top: 1px solid #eee;">
-
-    <div class="table-responsive">
-        {% if workshops %}
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Title</th>
-                    <th>Craft</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Instructor</th>
-                    <th>Studio</th>
-                    <th>Capacity</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for w in workshops %}
-                {% comment %}
-                   0=artist_id, 1=studio_id, 2=workshop_id, 3=title, 4=craft_type,
-                   5=date, 6=start, 7=end, 8=max_participants, 9=artist_name, 10=studio_name
-                {% endcomment %}
-                <tr>
-                    <td><strong>{{ w.2 }}</strong></td>
-                    <td>{{ w.3 }}</td>
-                    <td><span class="badge">{{ w.4 }}</span></td>
-                    <td>{{ w.5 }}</td>
-                    <td>{{ w.6 }} – {{ w.7 }}</td>
-                    <td>{{ w.9 }}</td>
-                    <td>{{ w.10 }}</td>
-                    <td>{{ w.8 }}</td>
-                    <td>
-                        <div class="action-btns">
-                            <a href="{% url 'workshop_detail' w.0 w.1 w.2 %}" class="btn-view">View</a>
-                            <a href="{% url 'edit_workshop'   w.0 w.1 w.2 %}" class="btn-edit">Edit</a>
+<div class="card">
+    <div class="card-header">Workshops List</div>
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            {% if workshops %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Craft</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Instructor</th>
+                        <th>Studio</th>
+                        <th>Capacity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in workshops %}
+                    {# 0=artist_id, 1=studio_id, 2=workshop_id, 3=title, 4=craft_type,
+                       5=date, 6=start, 7=end, 8=max_participants, 9=artist_name, 10=studio_name #}
+                    <tr>
+                        <td><strong>{{ w.2 }}</strong></td>
+                        <td>{{ w.3 }}</td>
+                        <td><span class="badge">{{ w.4 }}</span></td>
+                        <td>{{ w.5 }}</td>
+                        <td style="white-space: nowrap;">{{ w.6 }} – {{ w.7 }}</td>
+                        <td>{{ w.9 }}</td>
+                        <td>{{ w.10 }}</td>
+                        <td style="text-align: center;">{{ w.8 }}</td>
+                        <td style="white-space: nowrap;">
+                            <a href="{% url 'workshop_detail' w.0 w.1 w.2 %}" class="btn btn-primary btn-sm">View</a>
+                            <a href="{% url 'edit_workshop'   w.0 w.1 w.2 %}" class="btn btn-warning btn-sm">Edit</a>
                             <form method="post" action="{% url 'delete_workshop' w.0 w.1 w.2 %}"
-                                  onsubmit="return confirm('Delete workshop: {{ w.3 }}?');" style="margin:0;">
+                                  onsubmit="return confirm('Delete workshop: {{ w.3 }}?');" style="display:inline;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn-delete">Delete</button>
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="empty-state">
-            <p>No workshops yet. Click <strong>+ New Workshop</strong> to schedule one.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">No workshops yet. Click <strong>+ New Workshop</strong> to schedule one.</div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
 

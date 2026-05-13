@@ -1,30 +1,17 @@
-<style>
-    .nav-container {
-
-                
-        background-color: #b5b4b3;
-         padding: 1rem 2rem;
-        display: flex;
-        gap: 20px;
-        
-    }
-    .nav-container a {
-        color: white;
-        text-decoration: none;
-        font-weight: bold;
-    }
-    .nav-container a:hover { color: #28a745; }
-</style>
-
-<div class="nav-container">
-    <a href="{% url 'MembersList' %}">Members List</a>
-    <a href="{% url 'AddMemberForm' %}">Add Member</a>
-    <a href="{% url 'inventory_dashboard' %}">Materials</a>
-    <a href="{% url 'tool_dashboard' %}">Tools</a>
-    <a href="{% url 'workshop_list' %}">Workshops</a>
-    <a href="{% url 'artist_list' %}">Artists</a>
-    <a href="{% url 'studio_list' %}">Studio Dashboard </a>
-    <a href="{% url 'add_studio' %}">Add Studio</a>
-    <a href="{% url 'book_studio' %}">Book Studio</a>
-     <a href="{% url 'reports_dashboard' %}">Reports</a>
-</div>
+<nav class="navbar">
+    <a href="{% url 'MembersList' %}" class="navbar-brand">Creative <span>Workshop</span></a>
+    <div class="nav-links">
+        <a href="{% url 'MembersList' %}">Members</a>
+        <div class="nav-divider"></div>
+        <a href="{% url 'inventory_dashboard' %}">Inventory</a>
+        <a href="{% url 'tool_dashboard' %}">Tools</a>
+        <div class="nav-divider"></div>
+        <a href="{% url 'workshop_list' %}">Workshops</a>
+        <a href="{% url 'artist_list' %}">Artists</a>
+        <div class="nav-divider"></div>
+        <a href="{% url 'studio_list' %}">Studios</a>
+        <a href="{% url 'book_studio' %}">Book Studio</a>
+        <div class="nav-divider"></div>
+        <a href="{% url 'reports_dashboard' %}">Reports</a>
+    </div>
+</nav>

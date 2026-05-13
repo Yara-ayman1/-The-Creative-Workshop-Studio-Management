@@ -1,113 +1,128 @@
 {% extends 'base.html' %}
-{% load static %}
+{% block title %}Tools — Creative Workshop{% endblock %}
 {% block content %}
 
-<!DOCTYPE html>
-<html lang="en">
+<style>
+    .rent-form, .return-form { display: flex; flex-direction: column; gap: 5px; }
+    .rent-form input, .return-form input { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 12px; width: 140px; }
+    .add-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; align-items: end; margin-top: 16px; }
+    .rented-badge { background: #fee2e2; color: #b91c1c; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .free-badge   { background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+</style>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Tool Management System</title>
-    <link rel="stylesheet" href="{% static 'css/tools.css' %}">
-</head>
+<div class="page-header">
+    <h2>Tool Management</h2>
+</div>
 
-<body>
+<!-- Tools table -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">Tools List</div>
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Studio</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Condition</th>
+                        <th>Rentals</th>
+                        <th>Status</th>
+                        <th>Pickup</th>
+                        <th>Exp. Return</th>
+                        <th>Action</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tools %}
+                    <tr>
+                        <td><strong>{{ t.0 }}</strong></td>
+                        <td>{{ t.1|default:"—" }}</td>
+                        <td>{{ t.2 }}</td>
+                        <td style="color:#64748b; font-size:13px;">{{ t.3|default:"—" }}</td>
+                        <td><span class="badge badge-gray">{{ t.4|default:"—" }}</span></td>
+                        <td style="text-align:center;">{{ t.5|default:0 }}</td>
+                        <td>
+                            {% if t.6 %}
+                                <span class="rented-badge">Rented — #{{ t.6 }}</span>
+                            {% else %}
+                                <span class="free-badge">Available</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:12px; color:#64748b;">{{ t.7|default:"—" }}</td>
+                        <td style="font-size:12px; color:#64748b;">{{ t.8|default:"—" }}</td>
+                        <td>
+                            {% if not t.6 %}
+                            <form method="POST" action="{% url 'rent_tool' %}" class="rent-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="tool_id" value="{{ t.0 }}">
+                                <input type="number" name="member_id" placeholder="Member ID" required>
+                                <input type="datetime-local" name="pickup_time" required>
+                                <input type="datetime-local" name="return_time" required>
+                                <input type="text" name="condition" placeholder="Condition" required>
+                                <button type="submit" class="btn btn-success btn-sm" style="margin-top:2px;">Rent</button>
+                            </form>
+                            {% else %}
+                            <form method="POST" action="{% url 'return_tool' %}" class="return-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="tool_id" value="{{ t.0 }}">
+                                <input type="text" name="condition" placeholder="New condition" required>
+                                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:2px;">Return</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="POST" action="{% url 'delete_tool' %}" onsubmit="return confirm('Delete tool {{ t.2 }}?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="tool_id" value="{{ t.0 }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="11" class="empty-state">No tools yet. Add one below.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-<div class="container">
-
-    <header class="header">
-        <h1>🔧 Tool Management System</h1>
-        <p>Add • Rent • Return • Track Tools</p>
-    </header>
-    
-
-    <section class="card">
-        <h2>📋 Tools List</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>StudioID</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Condition</th>
-                    <th>Total Rentals</th>
-                    <th>Member</th>
-                    <th>Pickup</th>
-                    <th>Return</th>
-                    <th>Rent</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for t in tools %}
-                <tr>
-                    <td>{{ t.0 }}</td>
-                    <td>{{ t.1 }}</td>
-                    <td>{{ t.2 }}</td>
-                    <td>{{ t.3 }}</td>
-                    <td>{{ t.4 }}</td>
-                    <td>{{ t.5 }}</td>
-                    <td>
-                        {% if t.6 %}
-                           Member ID:{{ t.6 }}
-                        {% else %}
-                            NOT RENTED
-                        {% endif %}
-                    </td>
-                    <td>{{ t.7|default:"-" }}</td>
-                    <td>{{ t.8|default:"-" }}</td>
-
-                    <td>
-                        {% if not t.6 %}
-
-                        <form method="POST" action="{% url 'rent_tool' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="tool_id" value="{{ t.0 }}">
-                            <input type="number" name="member_id" placeholder="Member ID" required>
-                            <input type="datetime-local" name="pickup_time" required>
-                            <input type="datetime-local" name="return_time" required>
-                            <input type="text" name="condition" placeholder="Condition" required>
-                            <button class="btn rent">Rent</button>
-                        </form>
-
-                         {% else %}
-                        <form method="POST" action="{% url 'return_tool' %}">
-
-                            {% csrf_token %}
-                            <input type="hidden" name="tool_id" value="{{ t.0 }}">
-                            <input type="text" name="condition" placeholder="New Condition" required>
-                            <button class="btn return">Returned</button>
-                        </form>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <form method="POST" action="{% url 'delete_tool' %}">
-                          {% csrf_token %}
-                          <input type="hidden" name="mat_id" value="{{ mat.0 }}">
-                          <button type="submit" class="btn-delete">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-
-    <section class="card">
-        <h2>➕ Add New Tool</h2>
+<!-- Add tool form -->
+<div class="card">
+    <div class="card-header">Add New Tool</div>
+    <div class="card-body">
         <form method="POST" action="{% url 'add_tool' %}">
             {% csrf_token %}
-            <div class="grid">
-                <input type="number" name="tool_id" placeholder="Tool ID" required>
-                <input type="number" name="studio_id" placeholder="studio ID" required>
-                <input type="text" name="tool_name" placeholder="Tool Name" required>
-                <input type="text" name="description" placeholder="Description" required>
-                <input type="text" name="condition" placeholder="Condition" required>
+            <div class="add-form-grid">
+                <div class="form-group">
+                    <label>Tool ID</label>
+                    <input type="number" name="tool_id" class="form-control" placeholder="e.g. 1" required>
+                </div>
+                <div class="form-group">
+                    <label>Studio ID</label>
+                    <input type="number" name="studio_id" class="form-control" placeholder="e.g. 101">
+                </div>
+                <div class="form-group">
+                    <label>Tool Name</label>
+                    <input type="text" name="tool_name" class="form-control" placeholder="e.g. Pottery Wheel" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" name="description" class="form-control" placeholder="Brief description">
+                </div>
+                <div class="form-group">
+                    <label>Condition</label>
+                    <input type="text" name="condition" class="form-control" placeholder="e.g. Good" required>
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 10px;">Add Tool</button>
+                </div>
             </div>
-            <button class="btn add">Add Tool</button>
         </form>
-    </section>
+    </div>
 </div>
-</body>
-</html>
+
 {% endblock %}

@@ -56,6 +56,13 @@ go
 
 if exists (select 1
    from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('RAW_MATERIAL') and o.name = 'FK_RAW_MATERIAL_STUDIO')
+alter table RAW_MATERIAL
+   drop constraint FK_RAW_MATERIAL_STUDIO
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
    where r.fkeyid = object_id('TOOL') and o.name = 'FK_TOOL_CONTAINS_STUDIO')
 alter table TOOL
    drop constraint FK_TOOL_CONTAINS_STUDIO
@@ -337,6 +344,7 @@ create table RAW_MATERIAL (
    UNIT                 varchar(100)         null,
    QUANTITY_IN_STOCK    int                  null,
    CATEGORY             varchar(100)         null,
+   STUDIO_ID            int                  null,
    constraint PK_RAW_MATERIAL primary key (MATERIAL_ID)
 )
 go
@@ -380,12 +388,14 @@ go
 /* Table: RENTS                                                 */
 /*==============================================================*/
 create table RENTS (
+   RENTAL_ID            int                  IDENTITY(1,1) not null,
    MEMBER_ID            int                  not null,
    TOOL_ID              int                  not null,
    PICKUP_TIME          datetime             null,
    RETURN_TIME          datetime             null,
-   RETURN_CONDITION     varchar(1)           null,
-   constraint PK_RENTS primary key (MEMBER_ID, TOOL_ID)
+   ACTUAL_RETURN_TIME   datetime             null,
+   RETURN_CONDITION     varchar(100)         null,
+   constraint PK_RENTS primary key (RENTAL_ID)
 )
 go
 
@@ -445,9 +455,9 @@ create table TOOL (
    TOOL_ID              int                  not null,
    STUDIO_ID            int                  null,
    TOOL_NAME            varchar(100)         null,
-   DESCRIPTION          varchar(1)           null,
+   DESCRIPTION          varchar(500)         null,
    TOOL_CONDITION       varchar(100)         null,
-   TOTAL_RENTALS        int                  null,
+   TOTAL_RENTALS        int                  not null default 0,
    constraint PK_TOOL primary key (TOOL_ID)
 )
 go
@@ -552,4 +562,9 @@ go
 alter table WORKSHOP
    add constraint FK_WORKSHOP_LEADS_RESIDENT foreign key (ARTIST_ID)
       references RESIDENT_ARTIST (ARTIST_ID)
+go
+
+alter table RAW_MATERIAL
+   add constraint FK_RAW_MATERIAL_STUDIO foreign key (STUDIO_ID)
+      references STUDIO (STUDIO_ID)
 go

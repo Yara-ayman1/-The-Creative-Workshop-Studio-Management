@@ -1,179 +1,52 @@
 {% extends 'base.html' %}
+{% block title %}{{ workshop.0 }} — Creative Workshop{% endblock %}
 {% block content %}
 
 <style>
-    .manage-container {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        margin: 30px;
-    }
-
-    /* ── Info banner ── */
-    .info-banner {
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        padding: 20px 25px;
-        margin-bottom: 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .info-banner h2 { margin: 0 0 8px 0; color: #333; }
-    .info-banner .meta { color: #666; font-size: 14px; line-height: 1.8; }
-
-    .capacity-bar-wrap { margin-top: 8px; }
-    .capacity-bar-bg { background: #eee; border-radius: 4px; height: 8px; width: 220px; }
-    .capacity-bar    { background: #3498db; height: 8px; border-radius: 4px; }
-    .capacity-label  { font-size: 12px; color: #999; margin-top: 4px; }
-
-    .back-link {
-        color: #3498db;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: bold;
-        white-space: nowrap;
-    }
-    .back-link:hover { text-decoration: underline; }
-
-    /* ── Two-column grid ── */
-    .section-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
+    .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 760px) { .section-grid { grid-template-columns: 1fr; } }
 
-    /* ── Cards ── */
-    .card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        overflow: hidden;
-    }
-
-    .card-header {
-        background-color: #3498db;
-        color: white;
-        padding: 10px 16px;
-        font-weight: bold;
-        font-size: 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .card-body { padding: 16px; }
-
-    /* ── Tables inside cards ── */
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { border: 1px solid #eee; padding: 10px 12px; text-align: left; }
-    th { background-color: #f2f2f2; color: #555; font-size: 13px; text-transform: uppercase; }
-    tr:hover { background-color: #fafafa; }
-
-    .empty { color: #aaa; font-size: 14px; padding: 14px 0; text-align: center; }
-
-    /* ── Inline add forms ── */
-    .inline-form {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: flex-end;
-        margin-top: 14px;
-        padding-top: 12px;
-        border-top: 1px dashed #ddd;
-    }
-
+    .inline-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px dashed #e2e8f0; }
     .inline-form .field { display: flex; flex-direction: column; gap: 4px; }
-    .inline-form label  { font-size: 12px; font-weight: bold; color: #666; }
+    .inline-form label { font-size: 12px; font-weight: 600; color: #475569; }
+    .inline-form input, .inline-form select { padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 13px; font-family: inherit; }
 
-    .inline-form input,
-    .inline-form select {
-        padding: 7px 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 13px;
-    }
+    .full-notice { color: #b91c1c; font-size: 13px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; }
 
-    /* ── Buttons ── */
-    .btn-register { padding: 8px 14px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-    .btn-register:hover { background-color: #218838; }
-
-    .btn-log      { padding: 8px 14px; background-color: #0ea5e9; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-    .btn-log:hover { background-color: #0284c7; }
-
-    .btn-remove   { padding: 5px 10px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    .btn-remove:hover { background-color: #c0392b; }
-
-    .btn-edit-header {
-        padding: 5px 12px;
-        background-color: rgba(255,255,255,0.2);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.5);
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: normal;
-    }
-    .btn-edit-header:hover { background-color: rgba(255,255,255,0.35); }
-
-    .full-notice {
-        color: #e74c3c;
-        font-size: 13px;
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px dashed #ddd;
-    }
+    .workshop-banner { background: #fff; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); padding: 20px 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+    .workshop-banner h2 { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+    .workshop-banner .meta { color: #64748b; font-size: 14px; line-height: 1.8; }
 </style>
 
 {# workshop: 0=title, 1=craft, 2=date, 3=start, 4=end, 5=max, 6=artist_name, 7=studio_name #}
 
-<div class="manage-container">
-
-    {% if messages %}
-    <div style="margin-bottom: 20px;">
-        {% for message in messages %}
-        <div style="padding: 10px 15px; border-radius: 4px; margin-bottom: 10px; font-size: 14px;
-                    {% if message.tags == 'error' %} background-color: #fdecea; color: #c0392b; border: 1px solid #f5c6c6;
-                    {% else %} background-color: #eafaf1; color: #27ae60; border: 1px solid #d5f5e3; {% endif %}">
-            {{ message }}
+<div class="workshop-banner">
+    <div>
+        <h2>{{ workshop.0 }}</h2>
+        <div class="meta">
+            <span class="badge">{{ workshop.1 }}</span> &nbsp;
+            {{ workshop.2 }} &nbsp;|&nbsp; {{ workshop.3 }} – {{ workshop.4 }}<br>
+            Instructor: <strong>{{ workshop.6 }}</strong> &nbsp;|&nbsp; Studio: <strong>{{ workshop.7 }}</strong><br>
+            {{ registrations|length }} / {{ workshop.5 }} participants registered
         </div>
-        {% endfor %}
     </div>
-    {% endif %}
+    <a href="{% url 'workshop_list' %}" class="btn btn-secondary">← Back</a>
+</div>
 
-    <!-- ── Info banner ── -->
-    <div class="info-banner">
-        <div>
-            <h2>{{ workshop.0 }}</h2>
-            <div class="meta">
-                🎨 <strong>{{ workshop.1 }}</strong> &nbsp;|&nbsp;
-                📅 {{ workshop.2 }} &nbsp;|&nbsp;
-                🕐 {{ workshop.3 }} – {{ workshop.4 }}<br>
-                👤 {{ workshop.6 }} &nbsp;|&nbsp; 🏛 {{ workshop.7 }}
-            </div>
-            <div class="capacity-bar-wrap">
-                <div class="capacity-label">
-                    {{ registrations|length }} / {{ workshop.5 }} participants registered
-                </div>
-            </div>
+<div class="section-grid">
+
+    <!-- Registrations -->
+    <div class="card">
+        <div class="card-header">
+            Registered Members
+            <a href="{% url 'edit_workshop' artist_id studio_id workshop_id %}"
+               style="background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.4); padding:4px 10px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:500;">
+                Edit Workshop
+            </a>
         </div>
-        <a href="{% url 'workshop_list' %}" class="back-link">← Back to Workshops</a>
-    </div>
-
-    <!-- ── Two-column section ── -->
-    <div class="section-grid">
-
-        <!-- Registrations -->
-        <div class="card">
-            <div class="card-header">
-                👥 Registered Members
-                <a href="{% url 'edit_workshop' artist_id studio_id workshop_id %}" class="btn-edit-header">Edit Workshop</a>
-            </div>
-            <div class="card-body">
-                {% if registrations %}
+        <div class="card-body">
+            {% if registrations %}
+            <div class="table-responsive">
                 <table>
                     <thead>
                         <tr><th>Name</th><th>Email</th><th>Reg. Date</th><th></th></tr>
@@ -183,57 +56,59 @@
                         {# r: 0=member_id, 1=name, 2=email, 3=reg_date #}
                         <tr>
                             <td>{{ r.1 }}</td>
-                            <td style="color:#777; font-size:13px;">{{ r.2 }}</td>
-                            <td style="color:#999; font-size:12px;">{{ r.3 }}</td>
+                            <td style="color:#64748b; font-size:13px;">{{ r.2 }}</td>
+                            <td style="color:#94a3b8; font-size:12px;">{{ r.3 }}</td>
                             <td>
                                 <form method="post"
                                       action="{% url 'unregister_member' artist_id studio_id workshop_id r.0 %}"
                                       onsubmit="return confirm('Remove {{ r.1 }}?');" style="margin:0;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn-remove">Remove</button>
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
                                 </form>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                {% else %}
-                <p class="empty">No members registered yet.</p>
-                {% endif %}
-
-                {% if registrations|length < workshop.5 %}
-                <form method="post" action="{% url 'register_member' artist_id studio_id workshop_id %}"
-                      class="inline-form">
-                    {% csrf_token %}
-                    <div class="field">
-                        <label>Member</label>
-                        <select name="member_id" required>
-                            <option value="" disabled selected>Select member…</option>
-                            {% for m in all_members %}
-                            <option value="{{ m.0 }}">{{ m.1 }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label>Registration Date</label>
-                        <input type="date" name="reg_date" required>
-                    </div>
-                    <button type="submit" class="btn-register">Register</button>
-                </form>
-                {% else %}
-                <p class="full-notice">⚠️ Workshop is at full capacity.</p>
-                {% endif %}
             </div>
-        </div>
+            {% else %}
+            <p class="empty-state">No members registered yet.</p>
+            {% endif %}
 
-        <!-- Materials -->
-        <div class="card">
-            <div class="card-header">🧪 Materials Consumed</div>
-            <div class="card-body">
-                {% if materials %}
+            {% if registrations|length < workshop.5 %}
+            <form method="post" action="{% url 'register_member' artist_id studio_id workshop_id %}"
+                  class="inline-form">
+                {% csrf_token %}
+                <div class="field">
+                    <label>Member</label>
+                    <select name="member_id" required>
+                        <option value="" disabled selected>Select member…</option>
+                        {% for m in all_members %}
+                        <option value="{{ m.0 }}">{{ m.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Registration Date</label>
+                    <input type="date" name="reg_date" required>
+                </div>
+                <button type="submit" class="btn btn-success btn-sm">Register</button>
+            </form>
+            {% else %}
+            <p class="full-notice">Workshop is at full capacity.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Materials -->
+    <div class="card">
+        <div class="card-header">Materials Consumed</div>
+        <div class="card-body">
+            {% if materials %}
+            <div class="table-responsive">
                 <table>
                     <thead>
-                        <tr><th>Material</th><th>Qty Used</th><th>Unit</th><th>Actions</th></tr>
+                        <tr><th>Material</th><th>Qty Used</th><th>Unit</th><th></th></tr>
                     </thead>
                     <tbody>
                         {% for m in materials %}
@@ -241,51 +116,53 @@
                         <tr>
                             <td>{{ m.0 }}</td>
                             <td>
-                                <form method="post" action="{% url 'edit_consumption' artist_id studio_id workshop_id m.3 %}" style="display:flex; align-items:center; gap:5px;">
+                                <form method="post" action="{% url 'edit_consumption' artist_id studio_id workshop_id m.3 %}"
+                                      style="display:flex; align-items:center; gap:5px;">
                                     {% csrf_token %}
-                                    <input type="number" name="qty_used" value="{{ m.2 }}" min="1" style="width: 50px; padding: 2px 5px; font-size: 13px;">
-                                    <button type="submit" class="btn-edit-header" style="background:#f39c12; border:none; padding: 2px 6px;">Save</button>
+                                    <input type="number" name="qty_used" value="{{ m.2 }}" min="1"
+                                           style="width: 54px; padding: 3px 6px; border: 1px solid #cbd5e1; border-radius:4px; font-size:13px;">
+                                    <button type="submit" class="btn btn-warning btn-sm">Save</button>
                                 </form>
                             </td>
-                            <td style="color:#888;">{{ m.1 }}</td>
+                            <td style="color:#64748b;">{{ m.1 }}</td>
                             <td>
                                 <form method="post" action="{% url 'delete_consumption' artist_id studio_id workshop_id m.3 %}"
                                       onsubmit="return confirm('Remove {{ m.0 }} log? Stock will be returned.');" style="margin:0;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn-remove" style="padding: 2px 6px;">Delete</button>
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                 </form>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                {% else %}
-                <p class="empty">No materials logged yet.</p>
-                {% endif %}
-
-                <form method="post" action="{% url 'log_consumption' artist_id studio_id workshop_id %}"
-                      class="inline-form">
-                    {% csrf_token %}
-                    <div class="field">
-                        <label>Material</label>
-                        <select name="material_id" required>
-                            <option value="" disabled selected>Select material…</option>
-                            {% for m in all_materials %}
-                            {# m: 0=material_id, 1=mat_name, 2=unit, 3=qty_in_stock #}
-                            <option value="{{ m.0 }}">{{ m.1 }} ({{ m.3 }} {{ m.2 }} in stock)</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label>Qty</label>
-                        <input type="number" name="qty_used" min="1" style="width: 70px;" required>
-                    </div>
-                    <button type="submit" class="btn-log">Log</button>
-                </form>
             </div>
-        </div>
+            {% else %}
+            <p class="empty-state">No materials logged yet.</p>
+            {% endif %}
 
-    </div><!-- /section-grid -->
+            <form method="post" action="{% url 'log_consumption' artist_id studio_id workshop_id %}"
+                  class="inline-form">
+                {% csrf_token %}
+                <div class="field">
+                    <label>Material</label>
+                    <select name="material_id" required>
+                        <option value="" disabled selected>Select material…</option>
+                        {% for m in all_materials %}
+                        {# m: 0=material_id, 1=mat_name, 2=unit, 3=qty_in_stock #}
+                        <option value="{{ m.0 }}">{{ m.1 }} ({{ m.3 }} {{ m.2 }} in stock)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Qty</label>
+                    <input type="number" name="qty_used" min="1" style="width: 70px;" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Log</button>
+            </form>
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}

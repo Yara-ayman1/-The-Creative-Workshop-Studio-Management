@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-+btzr+dvmy#@0gp^7=i%8ts@2v5cd9=#c-7_-#sz3q52rr%z08
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -105,11 +105,17 @@ TEAM_DB_CONFIG = {
     },
     'Arwas-Desktop': {  
         'NAME': 'The Creative Workshop & Studio Management',
-        'HOST': 'ARWAS-DESKTOP\SQLEXPRESS',
+        'HOST': r'ARWAS-DESKTOP\SQLEXPRESS',
     },
-    'bodyy': {  
+    'bodyy': {
         'NAME': 'workshopDB',
         'HOST': 'bodyy',
+    },
+    'codespaces-e265ff': {
+        'NAME': 'The Creative Workshop Studio Management',
+        'HOST': 'localhost',
+        'USER': 'sa',
+        'PASSWORD': 'Workshop@2024!',
     },
 
 }
@@ -117,18 +123,34 @@ TEAM_DB_CONFIG = {
 
 config = TEAM_DB_CONFIG.get(HOSTNAME)
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'mssql',
-        'NAME': config['NAME'],
-        'HOST': config['HOST'],
-        'PORT': '',
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'extra_params': 'Trusted_Connection=yes;Encrypt=no;TrustServerCertificate=yes;',
-        },
+if config and config.get('USER'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'mssql',
+            'NAME': config['NAME'],
+            'HOST': config['HOST'],
+            'USER': config['USER'],
+            'PASSWORD': config['PASSWORD'],
+            'PORT': '',
+            'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',
+                'extra_params': 'Encrypt=no;TrustServerCertificate=yes;',
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'mssql',
+            'NAME': config['NAME'],
+            'HOST': config['HOST'],
+            'PORT': '',
+            'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',
+                'extra_params': 'Trusted_Connection=yes;Encrypt=no;TrustServerCertificate=yes;',
+            },
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

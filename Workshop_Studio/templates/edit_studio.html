@@ -1,45 +1,45 @@
 {% extends 'base.html' %}
-{% block title %}Add Studio — Creative Workshop{% endblock %}
+{% block title %}Edit Studio — Creative Workshop{% endblock %}
 {% block content %}
 
 <div class="form-card">
-    <h2>Add New Studio</h2>
+    <h2>Edit Studio</h2>
     <form method="POST" class="form-stack">
         {% csrf_token %}
 
         <div class="form-row-2">
             <div class="form-group">
                 <label>Studio ID</label>
-                <input type="number" name="studio_id" class="form-control" placeholder="e.g. 101" required>
+                <input type="text" class="form-control" value="{{ studio.0 }}" disabled>
             </div>
             <div class="form-group">
                 <label>Capacity</label>
-                <input type="number" name="capacity" class="form-control" placeholder="e.g. 20">
+                <input type="number" name="capacity" class="form-control" value="{{ studio.3|default:'' }}">
             </div>
         </div>
 
         <div class="form-group">
             <label>Studio Name</label>
-            <input type="text" name="studio_name" class="form-control" placeholder="e.g. Pottery Studio A" required>
+            <input type="text" name="studio_name" class="form-control" value="{{ studio.1|default:'' }}" required>
         </div>
 
         <div class="form-group">
             <label>Location</label>
-            <input type="text" name="location" class="form-control" placeholder="e.g. Building 1, Floor 2">
+            <input type="text" name="location" class="form-control" value="{{ studio.2|default:'' }}">
         </div>
 
         <div class="form-group">
             <label>Studio Type</label>
-            <input type="text" name="studio_type" class="form-control" placeholder="e.g. Workshop, Recording, Dance">
+            <input type="text" name="studio_type" class="form-control" value="{{ studio.4|default:'' }}">
         </div>
 
         <div class="form-group">
             <label>Equipment</label>
-            <input type="text" name="equipment" class="form-control" placeholder="e.g. Kiln, Wheels, Projector">
+            <input type="text" name="equipment" class="form-control" value="{{ studio.5|default:'' }}">
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-success">Add Studio</button>
+            <button type="submit" class="btn btn-success">Save Changes</button>
             <a href="{% url 'studio_list' %}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
