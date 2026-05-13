@@ -96,7 +96,7 @@ def book_studio(request):
                     end_datetime
                 ])
 
-                success_message = "Booking successful 🎉"
+                success_message = "Booking successful "
 
     # GET studios
     with connection.cursor() as cursor:
