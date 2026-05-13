@@ -251,7 +251,9 @@ create table BOOKS (
    STUDIO_ID            int                  not null,
    MEMBER_ID            int                  not null,
    BOOKING_DATE         datetime             null,
-   constraint PK_BOOKS primary key (STUDIO_ID, MEMBER_ID)
+   START_TIME           datetime             null,
+   END_TIME             datetime             null,
+   BOOKING_ID int IDENTITY(1,1) primary key
 )
 go
 
@@ -431,6 +433,7 @@ create table STUDIO (
    CAPACITY             int                  null,
    STUDIO_TYPE          varchar(50)          null,
    EQUIPMENT            varchar(100)         null,
+   STATUS               varchar(20)         DEFAULT 'Active',
    constraint PK_STUDIO primary key (STUDIO_ID)
 )
 go
