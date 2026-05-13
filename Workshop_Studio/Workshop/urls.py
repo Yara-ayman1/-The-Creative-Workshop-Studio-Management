@@ -23,4 +23,6 @@ urlpatterns = [
     path('inventory/', include('Inventory.urls')),
     path('tools/', include('Tools.urls')),
     path('Manage Workshop/', include('WorkshopManagement.urls')),
+    path('studios/', include('studio.urls')),
+    path('booking/', include('Booking.urls')),
 ]
